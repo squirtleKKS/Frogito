@@ -1,3 +1,5 @@
+<img width="250" height="249" alt="image" src="https://github.com/user-attachments/assets/8339d1fe-a432-43ba-af2e-37c252142a1c" />
+
 ### Функциональные требования
 
 - Поддержка базовых конструкций языка:
