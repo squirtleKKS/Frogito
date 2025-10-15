@@ -97,7 +97,7 @@ func int fact(int n) {
 
 
   ```text
-  var array<int> nums = [1, 2, 3];
+  var ^_int_^ nums = [1,2,3];
   print(nums[0]); // вывод: 1
   ```
 
