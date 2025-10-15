@@ -11,7 +11,7 @@
 
 #### Пример кода
 ```text
-func fact(n) {
+func int fact(int n) {
     if n <= 1 {
         return 1;
     }
