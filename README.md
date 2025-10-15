@@ -1,4 +1,4 @@
-<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/8339d1fe-a432-43ba-af2e-37c252142a1c" />
+<img width="100" height="500" alt="image" src="https://github.com/user-attachments/assets/8339d1fe-a432-43ba-af2e-37c252142a1c" />
 
 ### Функциональные требования
 
