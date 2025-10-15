@@ -40,6 +40,7 @@ func int fact(int n) {
   ```text
   var int x = 10;
   var float y = 2.5;
+  ```
 
 
 - **Функции:**
@@ -53,6 +54,7 @@ func int fact(int n) {
   func int add(int a, int b) {
       return a + b;
   }
+  ```
 
 - **Операции:**
   - Арифметические операции (+, -, *, /, %) применимы только к числовым типам (int, float).
@@ -72,6 +74,7 @@ func int fact(int n) {
   } else {
       print("non-positive");
   }
+  ```
 
 - **Циклы:**
 
@@ -84,6 +87,7 @@ func int fact(int n) {
   for (var int i = 0; i < 10; i = i + 1) {
       print(i);
   }
+  ```
 
 
 - **Массивы:**
@@ -95,6 +99,7 @@ func int fact(int n) {
   ```text
   var array<int> nums = [1, 2, 3];
   print(nums[0]); // вывод: 1
+  ```
 
 
 - **Возврат управления:**
