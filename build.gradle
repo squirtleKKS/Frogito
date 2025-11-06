@@ -7,12 +7,9 @@ group = 'lang'
 version = '1.0'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-}
-
-application {
-    mainClass = 'lang.Main'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
@@ -20,9 +17,20 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testImplementation(platform('org.junit:junit-bom:5.10.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 test {
     useJUnitPlatform()
+}
+
+application {
+    mainClass = 'lang.Main'
+}
+
+tasks.javadoc {
+    options.encoding = 'UTF-8'
+    options.addBooleanOption('html5', true)
 }

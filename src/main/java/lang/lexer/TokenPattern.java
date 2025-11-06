@@ -38,34 +38,41 @@ public interface TokenPattern {
      */
     List<TokenPattern> ALL = List.of(
 
-            simple("var", TokenType.KW_VAR),
-            simple("func", TokenType.KW_FUNC),
-            simple("return", TokenType.KW_RETURN),
-            simple("if", TokenType.KW_IF),
-            simple("else", TokenType.KW_ELSE),
-            simple("for", TokenType.KW_FOR),
-            simple("while", TokenType.KW_WHILE),
-            simple("break", TokenType.KW_BREAK),
-            simple("continue", TokenType.KW_CONTINUE),
+            // --- ключевые слова ---
+            word("var", TokenType.KW_VAR),
+            word("func", TokenType.KW_FUNC),
+            word("return", TokenType.KW_RETURN),
+            word("if", TokenType.KW_IF),
+            word("else", TokenType.KW_ELSE),
+            word("for", TokenType.KW_FOR),
+            word("while", TokenType.KW_WHILE),
+            word("break", TokenType.KW_BREAK),
+            word("continue", TokenType.KW_CONTINUE),
 
-            simple("int", TokenType.KW_INT),
-            simple("float", TokenType.KW_FLOAT),
-            simple("bool", TokenType.KW_BOOL),
-            simple("string", TokenType.KW_STRING),
-            simple("array", TokenType.KW_ARRAY),
-            simple("void", TokenType.KW_VOID),
+            // --- типы данных ---
+            word("int", TokenType.KW_INT),
+            word("float", TokenType.KW_FLOAT),
+            word("bool", TokenType.KW_BOOL),
+            word("string", TokenType.KW_STRING),
+            word("array", TokenType.KW_ARRAY),
+            word("void", TokenType.KW_VOID),
 
-            simple("true", TokenType.BOOL_TRUE),
-            simple("false", TokenType.BOOL_FALSE),
+            // --- логические литералы ---
+            word("true", TokenType.BOOL_TRUE),
+            word("false", TokenType.BOOL_FALSE),
 
+            // --- числовые и строковые литералы ---
             regex("[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?", TokenType.FLOAT_LITERAL),
             regex("[0-9]+", TokenType.INT_LITERAL),
             regex("\"(?:\\\\.|[^\"\\\\])*\"", TokenType.STRING_LITERAL),
 
+            // --- идентификаторы ---
             regex("[A-Za-z_][A-Za-z0-9_]*", TokenType.IDENT),
 
+            // --- комментарии ---
             regex("//[^\\r\\n]*", TokenType.LINE_COMMENT),
 
+            // --- операторы сравнения и логические ---
             simple("==", TokenType.EQ),
             simple("!=", TokenType.NEQ),
             simple("<=", TokenType.LE),
@@ -76,12 +83,15 @@ public interface TokenPattern {
             simple("<", TokenType.LT),
             simple(">", TokenType.GT),
             simple("!", TokenType.NOT),
+
+            // --- арифметические операторы ---
             simple("+", TokenType.PLUS),
             simple("-", TokenType.MINUS),
             simple("*", TokenType.STAR),
             simple("/", TokenType.SLASH),
             simple("%", TokenType.PERCENT),
 
+            // --- разделители и скобки ---
             simple("(", TokenType.LPAREN),
             simple(")", TokenType.RPAREN),
             simple("{", TokenType.LBRACE),
@@ -102,7 +112,9 @@ public interface TokenPattern {
     static TokenPattern regex(String regex, TokenType type) {
         return new TokenPattern() {
             private final Pattern p = Pattern.compile("^(" + regex + ")");
+            @Override
             public TokenType type() { return type; }
+            @Override
             public Pattern pattern() { return p; }
         };
     }
@@ -116,5 +128,18 @@ public interface TokenPattern {
      */
     static TokenPattern simple(String literal, TokenType type) {
         return regex(Pattern.quote(literal), type);
+    }
+
+    /**
+     * Создаёт шаблон для ключевых слов и булевых литералов,
+     * которые должны совпадать только на границе слова.
+     * <p><b>НОВЫЙ МЕТОД</b>: добавлен для предотвращения ситуаций вроде "trueFalse".</p>
+     *
+     * @param literal строка (лексема)
+     * @param type тип токена
+     * @return объект {@link TokenPattern}
+     */
+    static TokenPattern word(String literal, TokenType type) {
+        return regex(Pattern.quote(literal) + "(?![A-Za-z0-9_])", type);
     }
 }
