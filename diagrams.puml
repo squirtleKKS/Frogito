@@ -1,0 +1,166 @@
+@startuml
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+title Системный контекст: Frogito Runtime
+
+Person(programmer, "Программист", "Пишет код на языке Frogito")
+System(frogito, "Frogito Runtime", "Гибридная система выполнения кода на языке Frogito")
+
+Rel(programmer, frogito, "Пишет программы на Frogito", "hello.frog")
+Rel(frogito, programmer, "Возвращает результат выполнения", "Result: 30")
+
+@enduml
+
+
+@startuml
+!include <C4/C4_Container>
+
+title Контейнерная диаграмма: Frogito Runtime
+
+Person(programmer, "Программист", "Пишет код на языке Frogito")
+
+System_Boundary(frogito_boundary, "Frogito Runtime") {
+    Container(compiler, "Компилятор Frogito", "Frogito Compiler", "Транслирует исходный код в байт-код")
+    Container(vm, "Виртуальная машина", "Hybrid VM", "Выполняет байт-код через интерпретатор + JIT")
+    Container(jvm_integration, "JVM Integration Layer", "Java", "Интеграция с JVM")
+}
+
+Container(jvm, "JVM HotSpot", "Java Virtual Machine", "Платформа выполнения Java байт-кода")
+Container(hardware, "Аппаратное обеспечение", "CPU / Memory", "Выполняет машинный код")
+
+Rel(programmer, compiler, "Отправляет исходный код", "hello.frog")
+Rel(compiler, vm, "Генерирует байт-код", "hello.frogc")
+Rel(vm, jvm_integration, "Использует для компиляции", "JIT-сгенерированные классы")
+Rel(jvm_integration, jvm, "Выполняет через", "Java байт-код")
+Rel(jvm, hardware, "Запускает на", "Машинный код")
+Rel(hardware, programmer, "Возвращает результат", "Output")
+
+@enduml
+
+
+@startuml
+!include <C4/C4_Component>
+
+title Компонентная диаграмма: Виртуальная машина Frogito
+
+Container_Boundary(vm_container, "Виртуальная машина Frogito") {
+
+    Component(interpreter, "Интерпретатор", "Выполняет байт-код, профилирует")
+    Component(jit, "JIT-компилятор", "Компилирует горячий код в Java байт-код")
+    Component(gc, "GC Frogito", "Управляет памятью")
+    Component(classloader, "Class Loader", "Загружает классы байт-кода")
+
+    Component(vm_stack, "Стек ВМ", "Хранит локальные переменные")
+    Component(heap, "Куча Frogito", "Хранит объекты")
+    Component(jit_classes, "JIT классы", "Сгенерированный код")
+
+    Component(execution_engine, "Движок выполнения", "Координирует компоненты ВМ")
+}
+
+Container(compiler, "Компилятор Frogito", "Frogito Compiler", "Генерирует байт-код")
+Container(jvm_layer, "JVM Integration Layer", "Java", "Интеграция с JVM")
+
+Rel(compiler, classloader, "Поставляет", "байт-код .frogc")
+Rel(classloader, interpreter, "Загружает для выполнения")
+Rel(interpreter, jit, "Передает горячий код")
+Rel(jit, jit_classes, "Генерирует оптимизированные классы")
+Rel(jit_classes, jvm_layer, "Передает для выполнения в JVM")
+Rel(interpreter, vm_stack, "Использует локальные переменные")
+Rel(interpreter, heap, "Работает с объектами")
+Rel(gc, heap, "Управляет памятью")
+Rel(execution_engine, interpreter, "Управляет")
+Rel(execution_engine, jit, "Координирует")
+Rel(execution_engine, gc, "Контролирует")
+
+@enduml
+
+
+@startuml
+!include <C4/C4_Component>
+
+title Детальная компонентная диаграмма: Компилятор Frogito
+
+Container_Boundary(compiler_container, "Компилятор Frogito") {
+
+    Component(lexer, "Лексер", "Разбивает на токены")
+    Component(parser, "Парсер", "Строит AST")
+    Component(validator, "Валидатор", "Проверяет семантику")
+    Component(codegen, "Генератор байт-кода", "Создает .frogc")
+
+    Component(ast, "AST", "Абстрактное синтаксическое дерево")
+    Component(symbol_table, "Таблица символов", "Информация о переменных")
+}
+
+Container(source, "Исходный код", "File", "hello.frog")
+Container(bytecode, "Байт-код", "File", "hello.frogc")
+
+Rel(source, lexer, "Читает текст программы")
+Rel(lexer, parser, "Передает токены")
+Rel(parser, ast, "Строит AST")
+Rel(ast, validator, "Передает на проверку")
+Rel(validator, symbol_table, "Заполняет таблицу символов")
+Rel(validator, codegen, "Передает проверенный AST")
+Rel(codegen, bytecode, "Генерирует .frogc")
+
+@enduml
+
+
+@startuml Frogito Runtime Architecture
+
+skinparam {
+    BackgroundColor #F5F5F5
+    ArrowColor #2E4057
+    ActorBorderColor #2E4057
+    UsecaseBorderColor #2E4057
+    ClassBorderColor #2E4057
+    NoteBackgroundColor #FFFFFF
+}
+
+title Архитектура Frogito Runtime
+
+[Исходный код\nhello.frog] as source
+[Лексер] as lexer
+[Парсер] as parser
+[Валидатор] as validator
+[Генератор\nбайт-кода] as generator
+[Байт-код\nhello.frogc] as bytecode
+
+[Интерпретатор] as interp
+[Стек ВМ] as stack
+[JIT-компилятор] as jit
+[Сгенерированные\nJava классы] as jit_classes
+[GC Frogito] as gc
+[Куча Frogito] as heap
+
+[Унифицированная\nсистема выполнения] as unified
+[JVM HotSpot] as jvm
+[Машинный код\n(CPU)] as native
+[Результат\n"Result: 30"] as result
+[Class Loader] as classloader
+
+package "ФАЗА КОМПИЛЯЦИИ" {
+  source --> lexer
+  lexer --> parser
+  parser --> validator
+  validator --> generator
+  generator --> bytecode
+}
+
+bytecode --> interp
+interp --> jit
+interp --> gc
+
+interp --> stack
+jit --> jit_classes
+gc --> heap
+
+bytecode --> classloader
+classloader --> interp
+
+jit_classes --> unified
+unified --> jvm
+jvm --> native
+native --> result
+
+@enduml
