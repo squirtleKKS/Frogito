@@ -1,5 +1,7 @@
 package lang.lexer;
 
+import lang.lexer.token.BaseToken;
+import lang.lexer.token.TokenType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
