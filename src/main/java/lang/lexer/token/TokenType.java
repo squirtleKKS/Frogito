@@ -1,4 +1,4 @@
-package lang.lexer;
+package lang.lexer.token;
 
 /**
  * Перечисление всех типов токенов, поддерживаемых языком <b>Frogito</b>.

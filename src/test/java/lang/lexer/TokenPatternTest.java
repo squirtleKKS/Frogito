@@ -1,5 +1,7 @@
 package lang.lexer;
 
+import lang.lexer.token.TokenPattern;
+import lang.lexer.token.TokenType;
 import org.junit.jupiter.api.Test;
 
 import java.util.regex.Matcher;

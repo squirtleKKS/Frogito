@@ -1,5 +1,10 @@
 package lang.lexer;
 
+import lang.lexer.token.Token;
+import lang.lexer.token.TokenFactory;
+import lang.lexer.token.TokenPattern;
+import lang.lexer.token.TokenType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;

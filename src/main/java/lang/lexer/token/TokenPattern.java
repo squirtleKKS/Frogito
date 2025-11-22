@@ -1,4 +1,4 @@
-package lang.lexer;
+package lang.lexer.token;
 
 import java.util.List;
 import java.util.regex.Pattern;

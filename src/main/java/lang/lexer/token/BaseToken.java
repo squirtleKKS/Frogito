@@ -1,4 +1,4 @@
-package lang.lexer;
+package lang.lexer.token;
 
 /**
  * Реализация интерфейса {@link Token}, представляющая
