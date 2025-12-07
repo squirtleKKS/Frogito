@@ -27,6 +27,15 @@ public final class Parser {
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+        symbols.declare(new FuncSymbol("print", FrogType.VOID, List.of(FrogType.INT)));
+        symbols.declare(new FuncSymbol("len", FrogType.INT, List.of(FrogType.arrayOf(FrogType.INT))));
+        symbols.declare(new FuncSymbol("new_array_bool",
+                FrogType.arrayOf(FrogType.BOOL),
+                List.of(FrogType.INT, FrogType.BOOL)));
+        symbols.declare(new FuncSymbol("push_int",
+                FrogType.arrayOf(FrogType.INT),
+                List.of(FrogType.arrayOf(FrogType.INT), FrogType.INT)));
+
     }
 
     public Program parseProgram() {
@@ -125,12 +134,19 @@ public final class Parser {
         }
 
         if (init != null) {
+            if (init instanceof ArrayLiteralExpr arr
+                    && arr.getElements().isEmpty()
+                    && type.getKind() == FrogType.Kind.ARRAY) {
+                arr.setType(type);
+            }
+
             FrogType initType = init.getType();
             if (!type.isAssignableFrom(initType)) {
                 throw error(nameTok, "Тип инициализатора " + initType
                         + " не совместим с типом переменной " + type);
             }
         }
+
 
         return new VarDeclStmt(type, name, init, location(semi));
     }
@@ -161,6 +177,13 @@ public final class Parser {
         if (match(KW_BREAK)) return parseBreak(previous());
         if (match(KW_CONTINUE)) return parseContinue(previous());
         if (match(LBRACE)) return parseBlockAfterLbrace();
+        if (check(IDENT)
+                && current + 1 < tokens.size()
+                && tokens.get(current + 1).getType() == LBRACK) {
+            return parseIndexAssignOrExpr();
+        }
+
+
         return parseExprStatement();
     }
 
@@ -288,6 +311,40 @@ public final class Parser {
         stmt.setExpectedType(expected);
         return stmt;
     }
+    private Statement parseIndexAssignOrExpr() {
+        Expression left = parseCall();
+
+        if (left instanceof IndexExpr idx && match(ASSIGN)) {
+            Token eq = previous();
+            Expression right = parseExpression();
+            Token semi = consume(SEMICOLON, "Ожидалась ';' после присваивания в массив");
+
+            FrogType arrT = idx.getArray().getType();
+            FrogType idxT = idx.getIndex().getType();
+            FrogType valT = right.getType();
+
+            if (arrT.getKind() != FrogType.Kind.ARRAY) {
+                throw error(eq, "Слева от '=' должен быть массив, найдено " + arrT);
+            }
+            if (!idxT.equals(FrogType.INT)) {
+                throw error(eq, "Индекс массива должен быть int, найдено " + idxT);
+            }
+
+            FrogType elemT = arrT.getElementType();
+            if (!elemT.isAssignableFrom(valT)) {
+                throw error(eq, "Нельзя присвоить " + valT + " элементу массива типа " + elemT);
+            }
+
+            IndexAssignStmt st = new IndexAssignStmt(idx, right, location(semi));
+            st.setValueType(valT);
+            return st;
+        }
+
+        Token semi = consume(SEMICOLON, "Ожидалась ';' после выражения");
+        return new ExprStmt(left, location(semi));
+    }
+
+
 
     private BreakStmt parseBreak(Token breakToken) {
         consume(SEMICOLON, "Ожидалась ';' после break");
