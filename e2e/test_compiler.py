@@ -1,6 +1,8 @@
 import subprocess
 import tempfile
 import re
+import shutil
+import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -13,9 +15,43 @@ failed = 0
 def compile_code(code):
     temp_dir = tempfile.mkdtemp()
     bytecode_file = Path(temp_dir) / "test.frogc"
-    
+    gradlew = PROJECT_ROOT / "gradlew"
+    gradle_wrapper_jar = PROJECT_ROOT / "gradle" / "wrapper" / "gradle-wrapper.jar"
+
+    use_wrapper = gradlew.exists() and gradle_wrapper_jar.exists() and os.access(str(gradlew), os.X_OK)
+    wrapper_error = None
+    if use_wrapper:
+        try:
+            v = subprocess.run(
+                [str(gradlew), "--version"],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if v.returncode == 0:
+                cmd = [str(gradlew), "run", "--args", f"{repr(code)} {bytecode_file}"]
+            else:
+                wrapper_error = v.stderr or v.stdout or "unknown wrapper error"
+                use_wrapper = False
+        except Exception as e:
+            wrapper_error = str(e)
+            use_wrapper = False
+
+    if not use_wrapper:
+        gradle_bin = shutil.which("gradle")
+        if gradle_bin:
+            cmd = [gradle_bin, "run", "--args", f"{repr(code)} {bytecode_file}"]
+        else:
+            msg = (
+                "Compilation failed: gradle wrapper is missing or invalid and system 'gradle' is not installed.\n"
+                "Wrapper check details: " + (wrapper_error if wrapper_error else "wrapper not present") + "\n"
+                "Fixes: install Gradle, or generate/commit a valid gradle/wrapper/gradle-wrapper.jar and ensure './gradlew' is executable."
+            )
+            raise RuntimeError(msg)
+
     result = subprocess.run(
-        ["./gradlew", "run", "--args", f"{repr(code)} {bytecode_file}"],
+        cmd,
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True
