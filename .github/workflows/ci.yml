@@ -132,6 +132,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install build tools and build VM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config
+          cmake -S frogitovm -B frogitovm/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build frogitovm/build --config Release
+
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
