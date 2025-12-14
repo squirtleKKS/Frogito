@@ -1,11 +1,12 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]; then
-    echo "Usage: ./run_frog.sh <frog_file>"
+if [ "$#" -lt 1 ]; then
+    echo "Usage: ./run_frog.sh <frog_file> [--trace] [--jit-log] [--gc-log]"
     exit 1
 fi
 
 SOURCE_FILE="$1"
+shift
 BYTECODE_FILE="${SOURCE_FILE%.frog}.frogc"
 
 if [ ! -f "$SOURCE_FILE" ]; then
@@ -22,4 +23,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-frogitovm/build/frogvm run "$BYTECODE_FILE"
+frogitovm/build/frogvm run "$BYTECODE_FILE" "$@"
