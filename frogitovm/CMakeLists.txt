@@ -30,6 +30,9 @@ add_executable(frogvm_tests
     tests/unit_tests/value_test.cpp
     tests/unit_tests/vm_test.cpp
     tests/unit_tests/heap_test.cpp
+    tests/integration_tests/bytecode_vm_test.cpp
+    tests/integration_tests/error_handling_test.cpp
+    tests/integration_tests/real_file_test.cpp
     src/bytecode/bytecode_loader.cpp
     src/vm/vm.cpp
     src/runtime/heap.cpp
