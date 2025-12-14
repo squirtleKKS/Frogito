@@ -17,14 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache CMake build dir
-        uses: actions/cache@v4
-        with:
-          path: frogitovm/build
-          key: ${{ runner.os }}-cmake-build-${{ hashFiles('frogitovm/**/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-cmake-build-
-
       - name: Install build deps
         run: |
           sudo apt-get update
@@ -74,13 +66,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-          cache: gradle
 
       - name: Ensure Gradle wrapper executable and jar
         run: |
           if [[ -f "./gradlew" ]]; then chmod +x ./gradlew; fi
 
-          # if existing wrapper jar is corrupt, remove it
           if [[ -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
             jar tf gradle/wrapper/gradle-wrapper.jar >/dev/null 2>&1 || {
               echo "Existing gradle-wrapper.jar is corrupt, removing it"
@@ -88,7 +78,6 @@ jobs:
             }
           fi
 
-          # if missing, generate wrapper using SDKMAN-installed Gradle
           if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
             echo "Generating gradle wrapper (Gradle 8.10.2) via SDKMAN"
             curl -s "https://get.sdkman.io" | bash
@@ -105,7 +94,6 @@ jobs:
       - name: Show env / Gradle info
         run: |
           java -version
-          # try to show gradle info but don't fail CI if wrapper jar still missing
           if [[ -x "./gradlew" ]]; then
             ./gradlew --version || echo "gradle wrapper not available or failed --version"
           else
@@ -144,8 +132,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
-          cache-dependency-path: e2e/requirements.txt
 
       - name: Run e2e
         run: |
