@@ -61,8 +61,14 @@ public final class BytecodeGenerator {
             genStmtGlobal(st);
         }
 
-        for (int i = 0; i < program.getFunctions().size(); i++) {
-            FunctionDeclStmt f = program.getFunctions().get(i);
+        int jumpOverFuncs = emitJump(JUMP);
+
+        for (FunctionDeclStmt f : program.getFunctions()) {
+            Integer funcIdx = funcIndex.get(f.getName());
+            if (funcIdx == null) {
+                throw new IllegalStateException("Function index not found for " + f.getName());
+            }
+
             int entry = code.size();
 
             enterFunctionScope(f);
@@ -75,8 +81,8 @@ public final class BytecodeGenerator {
             int localCount = nextLocalSlot;
             exitFunctionScope();
 
-            FunctionInfo old = functions.get(i);
-            functions.set(i, new FunctionInfo(
+            FunctionInfo old = functions.get(funcIdx);
+            functions.set(funcIdx, new FunctionInfo(
                     old.nameConstIndex,
                     old.paramCount,
                     localCount,
@@ -85,6 +91,10 @@ public final class BytecodeGenerator {
                     old.paramTypes
             ));
         }
+
+        int programExitIp = code.size();
+        code.add(Instruction.of(RET));
+        patchJump(jumpOverFuncs, programExitIp);
 
         return new BytecodeModule(consts, functions, code);
     }
@@ -135,7 +145,9 @@ public final class BytecodeGenerator {
         }
         else if (st instanceof ExprStmt e) {
             genExpr(e.getExpression());
-            code.add(Instruction.of(POP));
+            if (!e.getExpression().getType().equals(FrogType.VOID)) {
+                code.add(Instruction.of(POP));
+            }
         }
         else if (st instanceof IndexAssignStmt ia) {
             genIndexAssign(ia);

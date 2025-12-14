@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# JNI support
+find_package(JNI REQUIRED)
+
 add_executable(frogvm
     src/main.cpp
     src/bytecode/bytecode_loader.cpp
@@ -40,3 +43,20 @@ add_executable(frogvm_tests
 target_include_directories(frogvm_tests PRIVATE src)
 target_link_libraries(frogvm_tests PRIVATE GTest::gtest_main)
 add_test(NAME frogvm_gtests COMMAND frogvm_tests)
+
+# JNI shared library
+add_library(frogitovm_jni SHARED
+    src/jni/frogvm_jni.cpp
+    src/bytecode/bytecode_loader.cpp
+    src/vm/vm.cpp
+    src/runtime/heap.cpp
+)
+
+target_include_directories(frogitovm_jni PRIVATE src ${JNI_INCLUDE_DIRS})
+target_link_libraries(frogitovm_jni PRIVATE ${JNI_LIBRARIES})
+
+# Set output directory for the library
+set_target_properties(frogitovm_jni PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    SOVERSION 1
+)

@@ -563,6 +563,15 @@ public final class Parser {
         for (int i = 0; i < args.size(); i++) {
             FrogType expected = funcSym.getParamTypes().get(i);
             FrogType actual = args.get(i).getType();
+
+            if (funcSym.getName().equals("print")) {
+                FrogType.Kind k = actual.getKind();
+                if (k == FrogType.Kind.INT || k == FrogType.Kind.FLOAT
+                        || k == FrogType.Kind.BOOL || k == FrogType.Kind.STRING) {
+                    continue;
+                }
+            }
+
             if (!expected.isAssignableFrom(actual)) {
                 throw error(lparen, "Аргумент #" + (i + 1) + " функции '" + funcSym.getName()
                         + "' должен быть типа " + expected + ", найдено " + actual);
