@@ -20,8 +20,8 @@ jobs:
       - name: Cache CMake build dir
         uses: actions/cache@v4
         with:
-          path: build
-          key: ${{ runner.os }}-cmake-build-${{ hashFiles('**/CMakeLists.txt') }}
+          path: frogitovm/build
+          key: ${{ runner.os }}-cmake-build-${{ hashFiles('frogitovm/**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-cmake-build-
 
@@ -29,23 +29,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build gcc g++
+        working-directory: frogitovm
 
       - name: Configure (CMake)
+        working-directory: frogitovm
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
+        working-directory: frogitovm
         run: cmake --build build
 
       - name: Run unit tests (bytecode_loader/heap/value/vm)
-        working-directory: build
+        working-directory: frogitovm/build
         run: |
           ctest --output-on-failure -C Release -R "^(bytecode_loader_test|heap_test|value_test|vm_test)$" || (
             echo "Unit tests not found by CTest. Available tests:" && ctest -N && exit 1
           )
 
       - name: Run integration tests (bytecode_vm/error_handling/real_file)
-        working-directory: build
+        working-directory: frogitovm/build
         run: |
           ctest --output-on-failure -C Release -R "^(bytecode_vm_test|error_handling_test|real_file_test)$" || (
             echo "Integration tests not found by CTest. Available tests:" && ctest -N && exit 1
@@ -57,8 +60,8 @@ jobs:
         with:
           name: cpp-test-reports
           path: |
-            build/Testing
-            build/**/Testing
+            frogitovm/build/Testing
+            frogitovm/build/**/Testing
 
   java-tests:
     name: Java tests (lang/lexer) (Gradle)
@@ -78,7 +81,15 @@ jobs:
           if [[ -f "./gradlew" ]]; then chmod +x ./gradlew; fi
           if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
             mkdir -p gradle/wrapper
-            wget -q https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
+            echo "Downloading gradle-wrapper.jar with retries..."
+            for i in 1 2 3; do
+              curl -fSL "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar && break || {
+                echo "Attempt $i failed, retrying..." && sleep $((i * 2))
+              }
+            done
+            if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
+              echo "Failed to download gradle-wrapper.jar" && ls -la gradle || exit 1
+            fi
           fi
 
       - name: Show env / Gradle info
