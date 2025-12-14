@@ -81,21 +81,22 @@ jobs:
           if [[ -f "./gradlew" ]]; then chmod +x ./gradlew; fi
           if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
             mkdir -p gradle/wrapper
-            echo "Downloading gradle-wrapper.jar with retries..."
-            for i in 1 2 3; do
-              curl -fSL "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar && break || {
-                echo "Attempt $i failed, retrying..." && sleep $((i * 2))
-              }
-            done
-            if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
-              echo "Failed to download gradle-wrapper.jar" && ls -la gradle || exit 1
-            fi
+            echo "Attempting to download gradle-wrapper.jar (curl then wget)..."
+            set -o pipefail
+            (curl -fSL "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar) || \
+            (wget -q "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -O gradle/wrapper/gradle-wrapper.jar) || true
+            echo "gradle/wrapper contents:" && ls -la gradle/wrapper || true
           fi
 
       - name: Show env / Gradle info
         run: |
           java -version
-          ./gradlew --version
+          # try to show gradle info but don't fail CI if wrapper jar still missing
+          if [[ -x "./gradlew" ]]; then
+            ./gradlew --version || echo "gradle wrapper not available or failed --version"
+          else
+            echo "./gradlew not present"
+          fi
 
       - name: Run only lang.lexer tests
         run: |
