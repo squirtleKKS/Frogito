@@ -1,16 +1,70 @@
 package lang.bytecodeGenerator;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import lang.semantic.ast.node.Expression;
 import lang.semantic.ast.node.Program;
 import lang.semantic.ast.node.Statement;
-import lang.semantic.ast.node.expression.*;
-import lang.semantic.ast.node.statement.*;
-import lang.semantic.bytecode.*;
+import lang.semantic.ast.node.expression.ArrayLiteralExpr;
+import lang.semantic.ast.node.expression.AssignExpr;
+import lang.semantic.ast.node.expression.BinaryExpr;
+import lang.semantic.ast.node.expression.CallExpr;
+import lang.semantic.ast.node.expression.IndexExpr;
+import lang.semantic.ast.node.expression.LiteralExpr;
+import lang.semantic.ast.node.expression.UnaryExpr;
+import lang.semantic.ast.node.expression.VarExpr;
+import lang.semantic.ast.node.statement.BlockStmt;
+import lang.semantic.ast.node.statement.BreakStmt;
+import lang.semantic.ast.node.statement.ContinueStmt;
+import lang.semantic.ast.node.statement.ExprStmt;
+import lang.semantic.ast.node.statement.ForStmt;
+import lang.semantic.ast.node.statement.FunctionDeclStmt;
+import lang.semantic.ast.node.statement.IfStmt;
+import lang.semantic.ast.node.statement.IndexAssignStmt;
+import lang.semantic.ast.node.statement.ReturnStmt;
+import lang.semantic.ast.node.statement.VarDeclStmt;
+import lang.semantic.ast.node.statement.WhileStmt;
+import lang.semantic.bytecode.BytecodeModule;
+import lang.semantic.bytecode.ConstantPool;
+import lang.semantic.bytecode.FunctionInfo;
+import lang.semantic.bytecode.Instruction;
+import lang.semantic.bytecode.OpCode;
+import static lang.semantic.bytecode.OpCode.ADD;
+import static lang.semantic.bytecode.OpCode.AND;
+import static lang.semantic.bytecode.OpCode.CALL;
+import static lang.semantic.bytecode.OpCode.DIV;
+import static lang.semantic.bytecode.OpCode.EQ;
+import static lang.semantic.bytecode.OpCode.GE;
+import static lang.semantic.bytecode.OpCode.GT;
+import static lang.semantic.bytecode.OpCode.JUMP;
+import static lang.semantic.bytecode.OpCode.JUMP_FALSE;
+import static lang.semantic.bytecode.OpCode.LE;
+import static lang.semantic.bytecode.OpCode.LOAD_GLOBAL;
+import static lang.semantic.bytecode.OpCode.LOAD_INDEX;
+import static lang.semantic.bytecode.OpCode.LOAD_LOCAL;
+import static lang.semantic.bytecode.OpCode.LT;
+import static lang.semantic.bytecode.OpCode.MOD;
+import static lang.semantic.bytecode.OpCode.MUL;
+import static lang.semantic.bytecode.OpCode.NEG;
+import static lang.semantic.bytecode.OpCode.NEQ;
+import static lang.semantic.bytecode.OpCode.NEW_ARRAY;
+import static lang.semantic.bytecode.OpCode.NOT;
+import static lang.semantic.bytecode.OpCode.OR;
+import static lang.semantic.bytecode.OpCode.POP;
+import static lang.semantic.bytecode.OpCode.PUSH_CONST;
+import static lang.semantic.bytecode.OpCode.RET;
+import static lang.semantic.bytecode.OpCode.STORE_GLOBAL;
+import static lang.semantic.bytecode.OpCode.STORE_INDEX;
+import static lang.semantic.bytecode.OpCode.STORE_LOCAL;
+import static lang.semantic.bytecode.OpCode.SUB;
 import lang.semantic.symbols.FrogType;
-
-import java.util.*;
-
-import static lang.semantic.bytecode.OpCode.*;
 
 public final class BytecodeGenerator {
 
@@ -39,6 +93,8 @@ public final class BytecodeGenerator {
         registerBuiltin("new_array_bool", 2);
         registerBuiltin("push_int", 2);
 
+        boolean hasUserFunctions = !program.getFunctions().isEmpty();
+
         for (FunctionDeclStmt f : program.getFunctions()) {
             int nameIdx = consts.addString(f.getName());
             int idx = functions.size();
@@ -61,7 +117,10 @@ public final class BytecodeGenerator {
             genStmtGlobal(st);
         }
 
-        int jumpOverFuncs = emitJump(JUMP);
+        int jumpOverFuncs = -1;
+        if (hasUserFunctions) {
+            jumpOverFuncs = emitJump(JUMP);
+        }
 
         for (FunctionDeclStmt f : program.getFunctions()) {
             Integer funcIdx = funcIndex.get(f.getName());
@@ -92,9 +151,11 @@ public final class BytecodeGenerator {
             ));
         }
 
-        int programExitIp = code.size();
-        code.add(Instruction.of(RET));
-        patchJump(jumpOverFuncs, programExitIp);
+        if (hasUserFunctions) {
+            int programExitIp = code.size();
+            code.add(Instruction.of(RET));
+            patchJump(jumpOverFuncs, programExitIp);
+        }
 
         return new BytecodeModule(consts, functions, code);
     }
