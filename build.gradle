@@ -27,7 +27,7 @@ test {
 }
 
 application {
-    mainClass = 'lang.Main'
+    mainClass = 'lang.app.Main'
 }
 
 tasks.javadoc {
