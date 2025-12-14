@@ -79,13 +79,27 @@ jobs:
       - name: Ensure Gradle wrapper executable and jar
         run: |
           if [[ -f "./gradlew" ]]; then chmod +x ./gradlew; fi
+
+          # if existing wrapper jar is corrupt, remove it
+          if [[ -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
+            jar tf gradle/wrapper/gradle-wrapper.jar >/dev/null 2>&1 || {
+              echo "Existing gradle-wrapper.jar is corrupt, removing it"
+              rm -f gradle/wrapper/gradle-wrapper.jar
+            }
+          fi
+
+          # if missing, generate wrapper using SDKMAN-installed Gradle
           if [[ ! -f "gradle/wrapper/gradle-wrapper.jar" ]]; then
-            mkdir -p gradle/wrapper
-            echo "Attempting to download gradle-wrapper.jar (curl then wget)..."
-            set -o pipefail
-            (curl -fSL "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar) || \
-            (wget -q "https://services.gradle.org/distributions/gradle-8.10.2-wrapper.jar" -O gradle/wrapper/gradle-wrapper.jar) || true
-            echo "gradle/wrapper contents:" && ls -la gradle/wrapper || true
+            echo "Generating gradle wrapper (Gradle 8.10.2) via SDKMAN"
+            curl -s "https://get.sdkman.io" | bash
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk install gradle 8.10.2
+            gradle wrapper --gradle-version 8.10.2 --distribution-type bin
+            chmod +x ./gradlew
+            echo "Generated wrapper, contents:"
+            ls -la gradle/wrapper || true
+          else
+            echo "gradle-wrapper.jar exists and looks OK"
           fi
 
       - name: Show env / Gradle info
