@@ -354,7 +354,22 @@ Value Vm::sub_values(const Value& l, const Value& r) const {
 }
 
 Value Vm::mul_values(const Value& l, const Value& r) const {
-    if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) return Value::FromInt(l.AsInt() * r.AsInt());
+    if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) {
+        std::int64_t a = l.AsInt();
+        std::int64_t b = r.AsInt();
+        
+        if (a > 0 && b > 0 && a > INT64_MAX / b) {
+            throw RuntimeError("integer overflow");
+        }
+        if (a < 0 && b < 0 && a < INT64_MAX / b) {
+            throw RuntimeError("integer overflow");
+        }
+        if ((a > 0 && b < 0 || a < 0 && b > 0) && a != 0 && b < INT64_MIN / a) {
+            throw RuntimeError("integer overflow");
+        }
+        
+        return Value::FromInt(a * b);
+    }
     if (l.tag == ValueTag::kFloat && r.tag == ValueTag::kFloat) return Value::FromFloat(l.AsFloat() * r.AsFloat());
     throw RuntimeError("MUL type mismatch");
 }

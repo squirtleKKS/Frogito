@@ -1,0 +1,21 @@
+func int count_primes_up_to(int limit) {
+    var int count = 0;
+    var int n = 2;
+    while (n < limit) {
+        var bool is_prime = true;
+        var int d = 2;
+        while (d * d <= n) {
+            if (n % d == 0) {
+                is_prime = false;
+            }
+            d = d + 1;
+        }
+        if (is_prime) {
+            count = count + 1;
+        }
+        n = n + 1;
+    }
+    return count;
+}
+
+print(count_primes_up_to(100000));

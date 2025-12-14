@@ -22,4 +22,6 @@ while (i < 150) {
     i = i + 1;
 }
 
-print(fibonacci(15));
+print(fibonacci(10));
+print(fibonacci(20));
+
