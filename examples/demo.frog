@@ -1,0 +1,23 @@
+var int n = 10;
+var int sum = 0;
+
+for (var int i = 1; i <= n; i = i + 1) {
+    sum = sum + i;
+}
+
+print(sum);
+
+func int factorial(int x) {
+    if (x <= 1) {
+        return 1;
+    }
+    return x * factorial(x - 1);
+}
+
+print(factorial(5));
+
+var array<int> numbers = {10, 20, 30, 40, 50};
+print(numbers[2]);
+
+var bool flag = (5 > 3) && (10 < 20);
+print(flag);

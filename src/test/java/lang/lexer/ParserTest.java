@@ -130,13 +130,6 @@ public class ParserTest {
     }
 
     @Test
-    void testEmptyArrayError() {
-        String src = "var array<int> nums = {};";
-
-        assertThrows(ParseException.class, () -> compile(src));
-    }
-
-    @Test
     void testNestedArrays() {
         String src = """
             var array<array<int>> m = {

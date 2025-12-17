@@ -1,0 +1,27 @@
+func int fibonacci(int n) {
+    if (n <= 1) {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+func array<int> make_array(int size) {
+    var array<int> arr = {0, 0, 0, 0, 0};
+    var int i = 0;
+    while (i < 5) {
+        arr[i] = i * 10;
+        i = i + 1;
+    }
+    return arr;
+}
+
+var int i = 0;
+while (i < 150) {
+    var int result = fibonacci(10);
+    var array<int> temp = make_array(5);
+    i = i + 1;
+}
+
+print(fibonacci(10));
+print(fibonacci(20));
+
