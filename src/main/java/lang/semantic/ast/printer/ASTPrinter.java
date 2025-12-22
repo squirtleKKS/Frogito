@@ -1,12 +1,29 @@
 package lang.semantic.ast.printer;
 
+import java.util.List;
+
 import lang.semantic.ast.node.Expression;
 import lang.semantic.ast.node.Program;
 import lang.semantic.ast.node.Statement;
-import lang.semantic.ast.node.expression.*;
-import lang.semantic.ast.node.statement.*;
-
-import java.util.List;
+import lang.semantic.ast.node.expression.ArrayLiteralExpr;
+import lang.semantic.ast.node.expression.AssignExpr;
+import lang.semantic.ast.node.expression.BinaryExpr;
+import lang.semantic.ast.node.expression.CallExpr;
+import lang.semantic.ast.node.expression.IndexExpr;
+import lang.semantic.ast.node.expression.LiteralExpr;
+import lang.semantic.ast.node.expression.UnaryExpr;
+import lang.semantic.ast.node.expression.VarExpr;
+import lang.semantic.ast.node.statement.BlockStmt;
+import lang.semantic.ast.node.statement.BreakStmt;
+import lang.semantic.ast.node.statement.ContinueStmt;
+import lang.semantic.ast.node.statement.ExprStmt;
+import lang.semantic.ast.node.statement.ForStmt;
+import lang.semantic.ast.node.statement.FunctionDeclStmt;
+import lang.semantic.ast.node.statement.IfStmt;
+import lang.semantic.ast.node.statement.IndexAssignStmt;
+import lang.semantic.ast.node.statement.ReturnStmt;
+import lang.semantic.ast.node.statement.VarDeclStmt;
+import lang.semantic.ast.node.statement.WhileStmt;
 
 public class ASTPrinter {
 
@@ -115,6 +132,13 @@ public class ASTPrinter {
             pad(); System.out.println("Break;");
         } else if (st instanceof ContinueStmt) {
             pad(); System.out.println("Continue;");
+        } else if (st instanceof IndexAssignStmt ia) {
+            pad();
+            System.out.println("IndexAssign:");
+            indent++;
+            printExpression(ia.getTarget());
+            printExpression(ia.getValue());
+            indent--;
         } else if (st instanceof BlockStmt b) {
             printBlock(b);
         } else {
