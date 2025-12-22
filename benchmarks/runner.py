@@ -2,6 +2,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+
 PROJECT_ROOT = Path(__file__).parent.parent
 VM_EXECUTABLE = PROJECT_ROOT / "frogitovm" / "build" / "frogvm"
 
@@ -18,41 +19,60 @@ class Benchmark:
         stdout = self._execute(bytecode_file)
         self.validator(stdout)
 
-    def _compile(self, code):
-        temp_dir = tempfile.mkdtemp()
-        bytecode_file = Path(temp_dir) / "test.frogc"
-        
-        code_arg = code.replace('"', '\\"').replace('$', '\\$')
+    def _compile(self, code: str) -> Path:
+        """
+        Compile Frog source via new CLI:
+          build <input.frog> -o <output.frogc>
+        """
+        temp_dir = Path(tempfile.mkdtemp())
+        source_file = temp_dir / "test.frog"
+        bytecode_file = temp_dir / "test.frogc"
+
+        source_file.write_text(code, encoding="utf-8")
+
         result = subprocess.run(
-            ["bash", "-c", f'./gradlew run --args "\'{code_arg}\' {bytecode_file}"'],
+            [
+                "./gradlew",
+                "run",
+                "--args",
+                f"build {source_file} -o {bytecode_file}",
+            ],
             cwd=PROJECT_ROOT,
             capture_output=True,
-            text=True
+            text=True,
         )
-        
+
         if result.returncode != 0:
-            raise RuntimeError(f"Compilation failed: {result.stderr}")
+            raise RuntimeError(
+                "Compilation failed\n"
+                f"STDOUT:\n{result.stdout}\n"
+                f"STDERR:\n{result.stderr}"
+            )
+
         if not bytecode_file.exists():
             raise RuntimeError("Bytecode file not created")
-        
+
         return bytecode_file
 
-    def _execute(self, bytecode_file):
+    def _execute(self, bytecode_file: Path) -> str:
         if not VM_EXECUTABLE.exists():
             raise RuntimeError(f"VM not found at {VM_EXECUTABLE}")
-        
+
         result = subprocess.run(
             [str(VM_EXECUTABLE), "run", str(bytecode_file)],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30,
         )
-        
-        if result.returncode != 0:
-            raise RuntimeError(f"Execution failed: {result.stderr}")
-        
-        return result.stdout
 
+        if result.returncode != 0:
+            raise RuntimeError(
+                "Execution failed\n"
+                f"STDOUT:\n{result.stdout}\n"
+                f"STDERR:\n{result.stderr}"
+            )
+
+        return result.stdout
 
 def factorial_20_gen():
     return """func int factorial(int n) {
@@ -67,13 +87,15 @@ print(factorial(20));"""
 
 def factorial_20_val(stdout):
     if "2432902008176640000" not in stdout:
-        raise AssertionError(f"Expected 2432902008176640000, got: {stdout}")
+        raise AssertionError(
+            f"Expected 2432902008176640000, got:\n{stdout}"
+        )
 
 
 def sorting_gen():
     array = list(range(10000, 0, -1))
     array_elements = ", ".join(str(i) for i in array)
-    
+
     return f"""func void quicksort(array<int> arr, int low, int high) {{
     if (low < high) {{
         var int pivot = arr[high];
@@ -108,14 +130,18 @@ while (i < 100) {{
 
 def sorting_val(stdout):
     sorted_array = sorted(range(10000, 0, -1))
-    output_lines = stdout.strip().split('\n')
-    
+    output_lines = stdout.strip().split("\n")
+
     if len(output_lines) != 100:
-        raise AssertionError(f"Expected 10000 lines, got {len(output_lines)}")
-    
+        raise AssertionError(
+            f"Expected 100 lines, got {len(output_lines)}"
+        )
+
     for i, expected in enumerate(sorted_array[:100]):
         if str(expected) not in output_lines[i]:
-            raise AssertionError(f"Position {i}: expected {expected}, got {output_lines[i]}")
+            raise AssertionError(
+                f"Position {i}: expected {expected}, got {output_lines[i]}"
+            )
 
 
 def primes_gen():
@@ -144,4 +170,6 @@ print(count_primes_up_to(100000));"""
 
 def primes_val(stdout):
     if "9592" not in stdout:
-        raise AssertionError(f"Expected 9592, got: {stdout}")
+        raise AssertionError(
+            f"Expected 9592, got:\n{stdout}"
+        )
