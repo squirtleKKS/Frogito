@@ -494,6 +494,21 @@ Value Vm::call_builtin(std::string_view name, std::span<const Value> args, bool 
         return Value::FromRaw(arr, ValueTag::kArray);
     }
 
+    if (name == "new_array_int") {
+        if (args.size() != 2) throw RuntimeError("new_array_int expects 2 arguments");
+        if (args[0].tag != ValueTag::kInt || args[1].tag != ValueTag::kInt) throw RuntimeError("new_array_int type mismatch");
+
+        std::int64_t n = args[0].AsInt();
+        if (n < 0) throw RuntimeError("new_array_int negative size");
+        std::int64_t fill = args[1].AsInt();
+
+        ArrayObject* arr = heap_.AllocateArray(static_cast<std::size_t>(n), options_.gc_log, Roots());
+        for (std::size_t i = 0; i < static_cast<std::size_t>(n); ++i) {
+            arr->elements[i] = Value::FromInt(fill);
+        }
+        return Value::FromRaw(arr, ValueTag::kArray);
+    }
+
     if (name == "push_int") {
         if (args.size() != 2) throw RuntimeError("push_int expects 2 arguments");
         if (args[0].tag != ValueTag::kArray || args[1].tag != ValueTag::kInt) throw RuntimeError("push_int type mismatch");

@@ -88,10 +88,11 @@ public final class BytecodeGenerator {
     private final Deque<LoopCtx> loopStack = new ArrayDeque<>();
 
     public BytecodeModule generate(Program program) {
-        registerBuiltin("print", 1);
-        registerBuiltin("len", 1);
-        registerBuiltin("new_array_bool", 2);
-        registerBuiltin("push_int", 2);
+        registerBuiltin("print", 1, FrogType.VOID);
+        registerBuiltin("len", 1, FrogType.INT);
+        registerBuiltin("new_array_bool", 2, FrogType.arrayOf(FrogType.BOOL));
+        registerBuiltin("new_array_int", 2, FrogType.arrayOf(FrogType.INT));
+        registerBuiltin("push_int", 2, FrogType.arrayOf(FrogType.INT));
 
         boolean hasUserFunctions = !program.getFunctions().isEmpty();
 
@@ -180,8 +181,15 @@ public final class BytecodeGenerator {
         }
         if (st instanceof VarDeclStmt v) {
             globals.add(v.getName());
-            if (v.getInitializer() != null) genExpr(v.getInitializer());
-            else pushDefault(v.getType());
+            if (v.getArraySize() != null) {
+                genExpr(v.getArraySize());
+                pushDefault(v.getType().getElementType());
+                callBuiltinNewArray(v.getType());
+            } else if (v.getInitializer() != null) {
+                genExpr(v.getInitializer());
+            } else {
+                pushDefault(v.getType());
+            }
             int nameIdx = consts.addString(v.getName());
             code.add(Instruction.a(STORE_GLOBAL, nameIdx));
             return;
@@ -193,15 +201,29 @@ public final class BytecodeGenerator {
         if (st instanceof VarDeclStmt v) {
             if (locals == null) {
                 globals.add(v.getName());
-                if (v.getInitializer() != null) genExpr(v.getInitializer());
-                else pushDefault(v.getType());
+                if (v.getArraySize() != null) {
+                    genExpr(v.getArraySize());
+                    pushDefault(v.getType().getElementType());
+                    callBuiltinNewArray(v.getType());
+                } else if (v.getInitializer() != null) {
+                    genExpr(v.getInitializer());
+                } else {
+                    pushDefault(v.getType());
+                }
                 int nameIdx = consts.addString(v.getName());
                 code.add(Instruction.a(STORE_GLOBAL, nameIdx));
                 return;
             }
             int slot = declareLocal(v.getName());
-            if (v.getInitializer() != null) genExpr(v.getInitializer());
-            else pushDefault(v.getType());
+            if (v.getArraySize() != null) {
+                genExpr(v.getArraySize());
+                pushDefault(v.getType().getElementType());
+                callBuiltinNewArray(v.getType());
+            } else if (v.getInitializer() != null) {
+                genExpr(v.getInitializer());
+            } else {
+                pushDefault(v.getType());
+            }
             code.add(Instruction.b(STORE_LOCAL, slot));
         }
         else if (st instanceof ExprStmt e) {
@@ -495,7 +517,7 @@ public final class BytecodeGenerator {
     private void patchJump(int atIndex, int targetIp) {
         code.get(atIndex).a = targetIp;
     }
-    private void registerBuiltin(String name, int paramCount) {
+    private void registerBuiltin(String name, int paramCount, FrogType returnType) {
         int nameIdx = consts.addString(name);
         int idx = functions.size();
         funcIndex.put(name, idx);
@@ -510,8 +532,28 @@ public final class BytecodeGenerator {
                 paramCount,
                 0,
                 -1,
-                FrogType.VOID,
+                returnType,
                 paramTypes
         ));
+    }
+    private void callBuiltinNewArray(FrogType arrayType) {
+        FrogType elemType = arrayType.getElementType();
+
+        String builtinName;
+        if (elemType.equals(FrogType.INT)) {
+            builtinName = "new_array_int";
+        } else if (elemType.equals(FrogType.BOOL)) {
+            builtinName = "new_array_bool";
+        } else {
+            throw new IllegalStateException(
+                    "Массивы с элементами типа " + elemType + " не поддерживаются");
+        }
+
+        Integer idx = funcIndex.get(builtinName);
+        if (idx == null) {
+            throw new IllegalStateException("Builtin not found: " + builtinName);
+        }
+
+        code.add(Instruction.ab(CALL, idx, 2));
     }
 }
