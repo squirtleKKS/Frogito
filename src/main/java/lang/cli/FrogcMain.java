@@ -41,11 +41,6 @@ public final class FrogcMain {
         }
 
         try {
-            // Compatibility mode for run_frog.sh:
-            // ./gradlew run --args "'<CODE>' <out.frogc>"
-            // Depending on quoting, we might receive:
-            //   args.length == 2  -> [CODE, out]
-            //   args.length == 1  -> ["'<CODE>' <out>"]
             if (looksLikeScriptInvocation(args)) {
                 ScriptArgs sa = parseScriptInvocation(args);
                 compileSourceStringToFile(sa.sourceCode, sa.outputPath);
@@ -120,7 +115,6 @@ public final class FrogcMain {
         String inputPath = args[1];
         Path input = Path.of(inputPath);
 
-        // Collect VM flags
         List<String> vmFlags = new ArrayList<>();
         for (int i = 2; i < args.length; i++) {
             String a = args[i];
@@ -134,12 +128,10 @@ public final class FrogcMain {
             }
         }
 
-        // 1) compile to .frogc (next to source)
         String source = readSource(input);
         String outputPath = deriveOutputPath(inputPath);
         compileSourceStringToFile(source, outputPath);
 
-        // 2) run VM and exit with VM code
         int code = runVm(outputPath, vmFlags);
         System.exit(code);
     }
@@ -166,11 +158,9 @@ public final class FrogcMain {
     }
 
     private static Path detectVmBinary() {
-        // Windows build
         Path win = Path.of("frogitovm", "build", "frogvm.exe");
         if (Files.exists(win)) return win;
 
-        // Unix build
         Path unix = Path.of("frogitovm", "build", "frogvm");
         if (Files.exists(unix)) return unix;
 
@@ -178,7 +168,7 @@ public final class FrogcMain {
         System.err.println("  frogitovm/build/frogvm.exe");
         System.err.println("  frogitovm/build/frogvm");
         System.exit(1);
-        return unix; // unreachable
+        return unix;
     }
 
     // =========================
@@ -424,7 +414,7 @@ public final class FrogcMain {
         } catch (FileNotFoundException e) {
             System.err.println("io error: file not found: " + path);
             System.exit(2);
-            return null; // unreachable
+            return null;
         }
     }
 
@@ -456,12 +446,12 @@ public final class FrogcMain {
 
     private static void printUsage() {
         System.err.println("Usage:");
-        System.err.println("frogc <code-string> <output.frogc>        (compat for run_frog.sh)");
-        System.err.println("frogc build <input.frog> [-o <output.frogc>]");
-        System.err.println("frogc run <input.frog> [--trace] [--jit-log] [--gc-log]");
-        System.err.println("frogc disasm <input.frogc>");
-        System.err.println("frogc ast <input.frog>");
-        System.err.println("frogc opt-ast <input.frog>");
+        System.err.println("<code-string> <output.frogc>");
+        System.err.println("build <input.frog> [-o <output.frogc>]");
+        System.err.println("run <input.frog> [--trace] [--jit-log] [--gc-log]");
+        System.err.println("disasm <input.frogc>");
+        System.err.println("ast <input.frog>");
+        System.err.println("opt-ast <input.frog>");
     }
 
     private static void printLexingError(LexingException e) {
