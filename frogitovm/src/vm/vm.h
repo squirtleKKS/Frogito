@@ -163,6 +163,7 @@ private:
     static void H_Ret(Vm& vm, const Instruction& ins);
 
     static void H_NewArray(Vm& vm, const Instruction& ins);
+    static void H_NewArraySized(Vm& vm, const Instruction& ins);
     static void H_LoadIndex(Vm& vm, const Instruction& ins);
     static void H_StoreIndex(Vm& vm, const Instruction& ins);
 };

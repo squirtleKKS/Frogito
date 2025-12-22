@@ -1,0 +1,32 @@
+func void quicksort(array<int> arr, int low, int high) {
+    if (low < high) {
+        var int mid = (low + high) / 2;
+        var int pivot = arr[mid];
+        var int i = low - 1;
+        var int j = low;
+        while (j < high) {
+            if (arr[j] < pivot) {
+                i = i + 1;
+                var int temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+            j = j + 1;
+        }
+        var int temp2 = arr[i + 1];
+        arr[i + 1] = arr[high];
+        arr[high] = temp2;
+        var int pi = i + 1;
+        quicksort(arr, low, pi - 1);
+        quicksort(arr, pi + 1, high);
+    }
+}
+var array<int> data[1000000];
+var int N = 1000000;
+var int j = 0;
+
+while (j < N) {
+    data[j] = N - j;
+    j = j + 1;
+}
+quicksort(data, 0, N - 1);

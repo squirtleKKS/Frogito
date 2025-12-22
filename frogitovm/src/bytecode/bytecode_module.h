@@ -47,6 +47,7 @@ enum class OpCode : std::uint8_t {
     kCall,
     kRet,
     kNewArray,
+    kNewArraySized,
     kLoadIndex,
     kStoreIndex,
     kPop

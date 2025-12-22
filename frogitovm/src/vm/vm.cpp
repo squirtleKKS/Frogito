@@ -85,6 +85,7 @@ const std::array<Vm::Handler, Vm::kOpCount>& Vm::Dispatch() {
         t[static_cast<std::size_t>(OpCode::kRet)] = &Vm::H_Ret;
 
         t[static_cast<std::size_t>(OpCode::kNewArray)] = &Vm::H_NewArray;
+        t[static_cast<std::size_t>(OpCode::kNewArraySized)] = &Vm::H_NewArraySized;
         t[static_cast<std::size_t>(OpCode::kLoadIndex)] = &Vm::H_LoadIndex;
         t[static_cast<std::size_t>(OpCode::kStoreIndex)] = &Vm::H_StoreIndex;
 
@@ -271,6 +272,7 @@ std::string Vm::opcode_name(OpCode op) const {
         case OpCode::kCall: return "CALL";
         case OpCode::kRet: return "RET";
         case OpCode::kNewArray: return "NEW_ARRAY";
+        case OpCode::kNewArraySized: return "NEW_ARRAY_SIZED";
         case OpCode::kLoadIndex: return "LOAD_INDEX";
         case OpCode::kStoreIndex: return "STORE_INDEX";
         case OpCode::kPop: return "POP";
@@ -822,6 +824,26 @@ void Vm::H_NewArray(Vm& vm, const Instruction& ins) {
     for (std::int32_t i = static_cast<std::int32_t>(count) - 1; i >= 0; --i) {
         arr->elements[static_cast<std::size_t>(i)] = vm.pop();
     }
+    vm.push(Value::FromRaw(arr, ValueTag::kArray));
+}
+
+void Vm::H_NewArraySized(Vm& vm, const Instruction& ins) {
+    if (!ins.has_a) {
+        throw RuntimeError("NEW_ARRAY_SIZED missing a");
+    }
+
+    std::size_t size = static_cast<std::size_t>(ins.a);
+
+    ArrayObject* arr = vm.heap_.AllocateArray(
+        size,
+        vm.options_.gc_log,
+        vm.Roots()
+    );
+
+    for (std::size_t i = 0; i < size; ++i) {
+        arr->elements[i] = Value::FromInt(0);
+    }
+
     vm.push(Value::FromRaw(arr, ValueTag::kArray));
 }
 

@@ -29,6 +29,7 @@ public enum OpCode {
 
     // arrays
     NEW_ARRAY,    // u16 count  (pop count elems, push array)
+    NEW_ARRAY_SIZED,
     LOAD_INDEX,   // pop index, pop array, push elem
     STORE_INDEX,  // pop value, pop index, pop array (mutate)
 

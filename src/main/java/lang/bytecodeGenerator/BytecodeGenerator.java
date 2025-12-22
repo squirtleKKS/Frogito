@@ -181,10 +181,10 @@ public final class BytecodeGenerator {
         }
         if (st instanceof VarDeclStmt v) {
             globals.add(v.getName());
+
             if (v.getArraySize() != null) {
-                genExpr(v.getArraySize());
-                pushDefault(v.getType().getElementType());
-                callBuiltinNewArray(v.getType());
+                int size = v.getArraySizeLiteral();
+                code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
             } else if (v.getInitializer() != null) {
                 genExpr(v.getInitializer());
             } else {
@@ -201,10 +201,10 @@ public final class BytecodeGenerator {
         if (st instanceof VarDeclStmt v) {
             if (locals == null) {
                 globals.add(v.getName());
+
                 if (v.getArraySize() != null) {
-                    genExpr(v.getArraySize());
-                    pushDefault(v.getType().getElementType());
-                    callBuiltinNewArray(v.getType());
+                    int size = v.getArraySizeLiteral();
+                    code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
                 } else if (v.getInitializer() != null) {
                     genExpr(v.getInitializer());
                 } else {
@@ -216,9 +216,8 @@ public final class BytecodeGenerator {
             }
             int slot = declareLocal(v.getName());
             if (v.getArraySize() != null) {
-                genExpr(v.getArraySize());
-                pushDefault(v.getType().getElementType());
-                callBuiltinNewArray(v.getType());
+                int size = v.getArraySizeLiteral();
+                code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
             } else if (v.getInitializer() != null) {
                 genExpr(v.getInitializer());
             } else {
@@ -535,25 +534,5 @@ public final class BytecodeGenerator {
                 returnType,
                 paramTypes
         ));
-    }
-    private void callBuiltinNewArray(FrogType arrayType) {
-        FrogType elemType = arrayType.getElementType();
-
-        String builtinName;
-        if (elemType.equals(FrogType.INT)) {
-            builtinName = "new_array_int";
-        } else if (elemType.equals(FrogType.BOOL)) {
-            builtinName = "new_array_bool";
-        } else {
-            throw new IllegalStateException(
-                    "Массивы с элементами типа " + elemType + " не поддерживаются");
-        }
-
-        Integer idx = funcIndex.get(builtinName);
-        if (idx == null) {
-            throw new IllegalStateException("Builtin not found: " + builtinName);
-        }
-
-        code.add(Instruction.ab(CALL, idx, 2));
     }
 }

@@ -1,5 +1,6 @@
 package lang.semantic.ast.node.statement;
 
+import lang.semantic.ast.node.expression.LiteralExpr;
 import lang.semantic.symbols.SourceLocation;
 import lang.semantic.ast.node.Expression;
 import lang.semantic.ast.node.Statement;
@@ -29,4 +30,32 @@ public final class VarDeclStmt implements Statement {
 
     @Override
     public SourceLocation getLocation() { return location; }
+
+    public int getArraySizeLiteral() {
+        if (arraySize == null) {
+            throw new IllegalStateException("Array size is null");
+        }
+
+        if (!(arraySize instanceof LiteralExpr lit)) {
+            throw new IllegalStateException(
+                    "Array size must be integer literal"
+            );
+        }
+
+        Object value = lit.getValue();
+        if (!(value instanceof Integer i)) {
+            throw new IllegalStateException(
+                    "Array size must be integer literal"
+            );
+        }
+
+        if (i < 0) {
+            throw new IllegalStateException(
+                    "Array size must be non-negative"
+            );
+        }
+
+        return i;
+    }
+
 }
