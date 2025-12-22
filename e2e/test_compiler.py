@@ -13,13 +13,18 @@ failed = 0
 
 
 def compile_code(code):
-    temp_dir = tempfile.mkdtemp()
-    bytecode_file = Path(temp_dir) / "test.frogc"
+    temp_dir = Path(tempfile.mkdtemp())
+    source_file = temp_dir / "test.frog"
+    bytecode_file = temp_dir / "test.frogc"
+
+    source_file.write_text(code, encoding="utf-8")
+
     gradlew = PROJECT_ROOT / "gradlew"
     gradle_wrapper_jar = PROJECT_ROOT / "gradle" / "wrapper" / "gradle-wrapper.jar"
 
     use_wrapper = gradlew.exists() and gradle_wrapper_jar.exists() and os.access(str(gradlew), os.X_OK)
     wrapper_error = None
+
     if use_wrapper:
         try:
             v = subprocess.run(
@@ -29,19 +34,19 @@ def compile_code(code):
                 text=True,
                 timeout=10,
             )
-            if v.returncode == 0:
-                cmd = [str(gradlew), "run", "--args", f"{repr(code)} {bytecode_file}"]
-            else:
+            if v.returncode != 0:
                 wrapper_error = v.stderr or v.stdout or "unknown wrapper error"
                 use_wrapper = False
         except Exception as e:
             wrapper_error = str(e)
             use_wrapper = False
 
-    if not use_wrapper:
+    if use_wrapper:
+        gradle_cmd = [str(gradlew)]
+    else:
         gradle_bin = shutil.which("gradle")
         if gradle_bin:
-            cmd = [gradle_bin, "run", "--args", f"{repr(code)} {bytecode_file}"]
+            gradle_cmd = [gradle_bin]
         else:
             msg = (
                 "Compilation failed: gradle wrapper is missing or invalid and system 'gradle' is not installed.\n"
@@ -50,23 +55,38 @@ def compile_code(code):
             )
             raise RuntimeError(msg)
 
+    build_cmd = gradle_cmd + ["-q", "run", "--args", f"build {source_file} -o {bytecode_file}"]
     result = subprocess.run(
-        cmd,
+        build_cmd,
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True
     )
-    
     if result.returncode != 0:
-        raise RuntimeError(f"Compilation failed: {result.stderr}")
-    
+        raise RuntimeError(
+            "Compilation failed\n"
+            f"STDOUT:\n{result.stdout}\n"
+            f"STDERR:\n{result.stderr}"
+        )
     if not bytecode_file.exists():
         raise RuntimeError("Bytecode file was not created")
-    
-    disasm_output = result.stdout
-    
-    return bytecode_file, disasm_output
 
+    disasm_cmd = gradle_cmd + ["-q", "run", "--args", f"disasm {bytecode_file}"]
+    dres = subprocess.run(
+        disasm_cmd,
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True
+    )
+    if dres.returncode != 0:
+        raise RuntimeError(
+            "Disasm failed\n"
+            f"STDOUT:\n{dres.stdout}\n"
+            f"STDERR:\n{dres.stderr}"
+        )
+
+    disasm_output = dres.stdout
+    return bytecode_file, disasm_output
 
 def execute_bytecode(bytecode_file):
     if not VM_EXECUTABLE.exists():
