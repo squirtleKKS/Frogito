@@ -180,9 +180,23 @@ public final class FrogcMain {
             printUsage();
             System.exit(2);
         }
-        BytecodeModule module = readModule(Path.of(args[1]));
+
+        Path input = Path.of(args[1]);
+
+        BytecodeModule module;
+
+        if (args[1].endsWith(".frog")) {
+            String source = readSource(input);
+            String outPath = deriveOutputPath(args[1]);
+            compileSourceStringToFile(source, outPath);
+            module = readModule(Path.of(outPath));
+        } else {
+            module = readModule(input);
+        }
+
         Disassembler.dump(module);
     }
+
 
     // =========================
     // Command: ast / opt-ast
