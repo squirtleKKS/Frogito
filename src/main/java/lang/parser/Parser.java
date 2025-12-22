@@ -121,6 +121,23 @@ public final class Parser {
         Token nameTok = consume(IDENT, "Ожидалось имя переменной");
         String name = nameTok.getLexeme();
 
+        Expression arraySize = null;
+        if (match(LBRACK)) {
+
+            if (type.getKind() != FrogType.Kind.ARRAY) {
+                throw error(nameTok, "Размер можно задавать только массивам");
+            }
+
+            arraySize = parseExpression();
+
+            if (!(arraySize instanceof LiteralExpr)
+                    || arraySize.getType() != FrogType.INT) {
+                throw error(nameTok, "Размер массива должен быть целочисленным литералом");
+            }
+
+            consume(RBRACK, "Ожидалась ']'");
+        }
+
         Expression init = null;
         if (match(ASSIGN)) {
             init = parseExpression();
@@ -140,6 +157,11 @@ public final class Parser {
                 arr.setType(type);
             }
 
+            if (arraySize != null && init instanceof ArrayLiteralExpr) {
+                throw error(nameTok,
+                        "Нельзя одновременно задавать размер массива и инициализатор");
+            }
+
             FrogType initType = init.getType();
             if (!type.isAssignableFrom(initType)) {
                 throw error(nameTok, "Тип инициализатора " + initType
@@ -148,7 +170,7 @@ public final class Parser {
         }
 
 
-        return new VarDeclStmt(type, name, init, location(semi));
+        return new VarDeclStmt(type, name, init, location(semi), arraySize);
     }
 
     private FrogType parseType() {

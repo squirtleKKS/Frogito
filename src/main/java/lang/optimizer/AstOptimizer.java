@@ -45,7 +45,8 @@ public final class AstOptimizer {
     private Statement optimizeStmt(Statement st) {
         if (st instanceof VarDeclStmt v) {
             Expression initOpt = v.getInitializer() == null ? null : optimizeExpr(v.getInitializer());
-            VarDeclStmt nv = new VarDeclStmt(v.getType(), v.getName(), initOpt, v.getLocation());
+            Expression sizeOpt = v.getArraySize() == null ? null : optimizeExpr(v.getArraySize());
+            VarDeclStmt nv = new VarDeclStmt(v.getType(), v.getName(), initOpt, v.getLocation(), sizeOpt);
             return nv;
         }
 
