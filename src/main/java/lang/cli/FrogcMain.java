@@ -74,10 +74,6 @@ public final class FrogcMain {
         }
     }
 
-    // =========================
-    // Command: build
-    // =========================
-
     private static void handleBuild(String[] args) throws IOException {
         if (args.length < 2 || args.length > 4) {
             printUsage();
@@ -101,10 +97,6 @@ public final class FrogcMain {
         compileSourceStringToFile(source, outputPath);
         System.out.println("OK: wrote " + outputPath);
     }
-
-    // =========================
-    // Command: run (E2E)
-    // =========================
 
     private static void handleRun(String[] args) throws IOException {
         if (args.length < 2) {
@@ -158,22 +150,30 @@ public final class FrogcMain {
     }
 
     private static Path detectVmBinary() {
-        Path win = Path.of("frogitovm", "build", "frogvm.exe");
-        if (Files.exists(win)) return win;
+        String exe = isWindows() ? "frogvm.exe" : "frogvm";
 
-        Path unix = Path.of("frogitovm", "build", "frogvm");
-        if (Files.exists(unix)) return unix;
+        Path[] candidates = new Path[] {
+                Path.of("frogitovm", "build", exe),
+                Path.of("frogito", "lib", exe),
+                Path.of("..", "lib", exe),
+        };
+
+        for (Path p : candidates) {
+            if (Files.exists(p)) return p;
+        }
 
         System.err.println("runtime error: frogvm binary not found. Expected one of:");
-        System.err.println("  frogitovm/build/frogvm.exe");
-        System.err.println("  frogitovm/build/frogvm");
+        for (Path p : candidates) {
+            System.err.println("  " + p);
+        }
         System.exit(1);
-        return unix;
+        return candidates[0];
     }
 
-    // =========================
-    // Command: disasm
-    // =========================
+    private static boolean isWindows() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        return os.contains("win");
+    }
 
     private static void handleDisasm(String[] args) throws IOException {
         if (args.length != 2) {
@@ -196,11 +196,6 @@ public final class FrogcMain {
 
         Disassembler.dump(module);
     }
-
-
-    // =========================
-    // Command: ast / opt-ast
-    // =========================
 
     private static void handleAst(String[] args) throws IOException {
         if (args.length != 2) {
@@ -269,14 +264,10 @@ public final class FrogcMain {
     }
 
     private static int lastWhitespaceBoundary(String s) {
-        // Find start index of last token (output path), return index where code part ends.
-        // We want split: [0..boundary) and [boundary..end)
         int i = s.length() - 1;
         while (i >= 0 && Character.isWhitespace(s.charAt(i))) i--;
         if (i < 0) return -1;
 
-        // move to start of last token
-        int end = i;
         while (i >= 0 && !Character.isWhitespace(s.charAt(i))) i--;
         int startLastToken = i + 1;
 
@@ -296,10 +287,6 @@ public final class FrogcMain {
     }
 
     private record ScriptArgs(String sourceCode, String outputPath) {}
-
-    // =========================
-    // Compilation pipeline
-    // =========================
 
     private static void compileSourceStringToFile(String source, String outputPath) throws IOException {
         Program program = parseProgram(source);
@@ -336,10 +323,6 @@ public final class FrogcMain {
         return parser.parseProgram();
     }
 
-    // =========================
-    // .frogc reader (matches FrogcWriter)
-    // =========================
-
     private static BytecodeModule readModule(Path path) throws IOException {
         try (InputStream is = new FileInputStream(path.toFile());
              DataInputStream d = new DataInputStream(is)) {
@@ -357,7 +340,7 @@ public final class FrogcMain {
 
             int constCount = d.readInt();
             int funcCount = d.readInt();
-            int codeSize = d.readInt(); // instruction count
+            int codeSize = d.readInt();
 
             ConstantPool consts = new ConstantPool();
 
@@ -439,14 +422,10 @@ public final class FrogcMain {
             case 3 -> FrogType.BOOL;
             case 4 -> FrogType.STRING;
             case 5 -> FrogType.VOID;
-            case 6 -> FrogType.arrayOf(FrogType.VOID); // must match your typeToByte ARRAY mapping
+            case 6 -> FrogType.arrayOf(FrogType.VOID);
             default -> FrogType.VOID;
         };
     }
-
-    // =========================
-    // Misc
-    // =========================
 
     private static String deriveOutputPath(String inputPath) {
         Path p = Path.of(inputPath);

@@ -5,10 +5,10 @@ import lang.semantic.symbols.FrogType;
 import java.util.List;
 
 public final class FunctionInfo {
-    public final int nameConstIndex;        // STRING in const pool
+    public final int nameConstIndex;
     public final short paramCount;
     public final short localCount;
-    public final int entryIp;              // индекс инструкции, куда прыгать
+    public final int entryIp;
     public final FrogType returnType;
     public final List<FrogType> paramTypes;
 

@@ -96,7 +96,6 @@ public final class Lexer {
             m.region(index, length);
             if (m.lookingAt()) {
                 String lexeme = m.group();
-                // --- новый код: пропуск комментариев ---
                 if (pat.type() == TokenType.LINE_COMMENT) {
                     advance(lexeme);
                     return nextTokenInternal();
@@ -107,7 +106,6 @@ public final class Lexer {
             }
         }
 
-        // --- новый код: генерация исключения при неизвестном символе ---
         char bad = input.charAt(index);
         throw new LexingException("Unexpected character: '" + printable(bad) + "' at " + line + ":" + column, line, column);
     }

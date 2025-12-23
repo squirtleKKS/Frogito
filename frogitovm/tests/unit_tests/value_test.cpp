@@ -6,7 +6,9 @@
 TEST(ValueTest, ConstructAndAccessInt) {
     Value v = Value::FromInt(123);
     EXPECT_EQ(v.tag, ValueTag::kInt);
-    EXPECT_EQ(v.AsInt(), 123);
+    std::int64_t got = 0;
+    ASSERT_TRUE(v.AsInt().TryToInt64(got));
+    EXPECT_EQ(got, 123);
 }
 
 TEST(ValueTest, ConstructAndAccessFloat) {
@@ -37,7 +39,9 @@ TEST(ValueTest, ConstructAndAccessArray) {
     Value v = Value::FromRaw(&arr, ValueTag::kArray);
     EXPECT_EQ(v.tag, ValueTag::kArray);
     ASSERT_EQ(v.AsArray()->elements.size(), 1u);
-    EXPECT_EQ(v.AsArray()->elements[0].AsInt(), 42);
+    std::int64_t got = 0;
+    ASSERT_TRUE(v.AsArray()->elements[0].AsInt().TryToInt64(got));
+    EXPECT_EQ(got, 42);
 }
 
 TEST(ValueTest, NullValueDefaults) {

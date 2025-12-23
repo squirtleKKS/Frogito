@@ -36,35 +36,9 @@ import lang.semantic.bytecode.ConstantPool;
 import lang.semantic.bytecode.FunctionInfo;
 import lang.semantic.bytecode.Instruction;
 import lang.semantic.bytecode.OpCode;
-import static lang.semantic.bytecode.OpCode.ADD;
-import static lang.semantic.bytecode.OpCode.AND;
-import static lang.semantic.bytecode.OpCode.CALL;
-import static lang.semantic.bytecode.OpCode.DIV;
-import static lang.semantic.bytecode.OpCode.EQ;
-import static lang.semantic.bytecode.OpCode.GE;
-import static lang.semantic.bytecode.OpCode.GT;
-import static lang.semantic.bytecode.OpCode.JUMP;
-import static lang.semantic.bytecode.OpCode.JUMP_FALSE;
-import static lang.semantic.bytecode.OpCode.LE;
-import static lang.semantic.bytecode.OpCode.LOAD_GLOBAL;
-import static lang.semantic.bytecode.OpCode.LOAD_INDEX;
-import static lang.semantic.bytecode.OpCode.LOAD_LOCAL;
-import static lang.semantic.bytecode.OpCode.LT;
-import static lang.semantic.bytecode.OpCode.MOD;
-import static lang.semantic.bytecode.OpCode.MUL;
-import static lang.semantic.bytecode.OpCode.NEG;
-import static lang.semantic.bytecode.OpCode.NEQ;
-import static lang.semantic.bytecode.OpCode.NEW_ARRAY;
-import static lang.semantic.bytecode.OpCode.NOT;
-import static lang.semantic.bytecode.OpCode.OR;
-import static lang.semantic.bytecode.OpCode.POP;
-import static lang.semantic.bytecode.OpCode.PUSH_CONST;
-import static lang.semantic.bytecode.OpCode.RET;
-import static lang.semantic.bytecode.OpCode.STORE_GLOBAL;
-import static lang.semantic.bytecode.OpCode.STORE_INDEX;
-import static lang.semantic.bytecode.OpCode.STORE_LOCAL;
-import static lang.semantic.bytecode.OpCode.SUB;
 import lang.semantic.symbols.FrogType;
+
+import static lang.semantic.bytecode.OpCode.*;
 
 public final class BytecodeGenerator {
 
@@ -88,10 +62,11 @@ public final class BytecodeGenerator {
     private final Deque<LoopCtx> loopStack = new ArrayDeque<>();
 
     public BytecodeModule generate(Program program) {
-        registerBuiltin("print", 1);
-        registerBuiltin("len", 1);
-        registerBuiltin("new_array_bool", 2);
-        registerBuiltin("push_int", 2);
+        registerBuiltin("print", 1, FrogType.VOID);
+        registerBuiltin("len", 1, FrogType.INT);
+        registerBuiltin("new_array_bool", 2, FrogType.arrayOf(FrogType.BOOL));
+        registerBuiltin("new_array_int", 2, FrogType.arrayOf(FrogType.INT));
+        registerBuiltin("push_int", 2, FrogType.arrayOf(FrogType.INT));
 
         boolean hasUserFunctions = !program.getFunctions().isEmpty();
 
@@ -156,6 +131,7 @@ public final class BytecodeGenerator {
             code.add(Instruction.of(RET));
             patchJump(jumpOverFuncs, programExitIp);
         }
+        code.add(Instruction.of(KVA));
 
         return new BytecodeModule(consts, functions, code);
     }
@@ -180,8 +156,15 @@ public final class BytecodeGenerator {
         }
         if (st instanceof VarDeclStmt v) {
             globals.add(v.getName());
-            if (v.getInitializer() != null) genExpr(v.getInitializer());
-            else pushDefault(v.getType());
+
+            if (v.getArraySize() != null) {
+                int size = v.getArraySizeLiteral();
+                code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
+            } else if (v.getInitializer() != null) {
+                genExpr(v.getInitializer());
+            } else {
+                pushDefault(v.getType());
+            }
             int nameIdx = consts.addString(v.getName());
             code.add(Instruction.a(STORE_GLOBAL, nameIdx));
             return;
@@ -193,15 +176,28 @@ public final class BytecodeGenerator {
         if (st instanceof VarDeclStmt v) {
             if (locals == null) {
                 globals.add(v.getName());
-                if (v.getInitializer() != null) genExpr(v.getInitializer());
-                else pushDefault(v.getType());
+
+                if (v.getArraySize() != null) {
+                    int size = v.getArraySizeLiteral();
+                    code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
+                } else if (v.getInitializer() != null) {
+                    genExpr(v.getInitializer());
+                } else {
+                    pushDefault(v.getType());
+                }
                 int nameIdx = consts.addString(v.getName());
                 code.add(Instruction.a(STORE_GLOBAL, nameIdx));
                 return;
             }
             int slot = declareLocal(v.getName());
-            if (v.getInitializer() != null) genExpr(v.getInitializer());
-            else pushDefault(v.getType());
+            if (v.getArraySize() != null) {
+                int size = v.getArraySizeLiteral();
+                code.add(Instruction.a(OpCode.NEW_ARRAY_SIZED, size));
+            } else if (v.getInitializer() != null) {
+                genExpr(v.getInitializer());
+            } else {
+                pushDefault(v.getType());
+            }
             code.add(Instruction.b(STORE_LOCAL, slot));
         }
         else if (st instanceof ExprStmt e) {
@@ -495,7 +491,7 @@ public final class BytecodeGenerator {
     private void patchJump(int atIndex, int targetIp) {
         code.get(atIndex).a = targetIp;
     }
-    private void registerBuiltin(String name, int paramCount) {
+    private void registerBuiltin(String name, int paramCount, FrogType returnType) {
         int nameIdx = consts.addString(name);
         int idx = functions.size();
         funcIndex.put(name, idx);
@@ -510,7 +506,7 @@ public final class BytecodeGenerator {
                 paramCount,
                 0,
                 -1,
-                FrogType.VOID,
+                returnType,
                 paramTypes
         ));
     }

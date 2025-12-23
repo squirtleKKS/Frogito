@@ -281,7 +281,7 @@ private:
     std::streambuf* old_buf_;
 };
 
-}  // namespace
+}
 
 TEST(RealFileTest, MatchesHelloFrogcFromJavaFrontend) {
     std::filesystem::path file = WriteRawFile(kHelloModule);
@@ -294,7 +294,9 @@ TEST(RealFileTest, MatchesHelloFrogcFromJavaFrontend) {
     auto globals = vm.globals();
     auto it = globals.find("x");
     ASSERT_NE(it, globals.end());
-    EXPECT_EQ(it->second.AsInt(), 70);
+    std::int64_t got = 0;
+    ASSERT_TRUE(it->second.AsInt().TryToInt64(got));
+    EXPECT_EQ(got, 70);
 }
 
 TEST(RealFileTest, FactorialTriggersJitCompilation) {
@@ -311,7 +313,9 @@ TEST(RealFileTest, FactorialTriggersJitCompilation) {
     auto globals = vm.globals();
     auto it = globals.find("result");
     ASSERT_NE(it, globals.end());
-    EXPECT_EQ(it->second.AsInt(), 120);
+    std::int64_t got = 0;
+    ASSERT_TRUE(it->second.AsInt().TryToInt64(got));
+    EXPECT_EQ(got, 120);
 
     std::string log = capture.str();
     EXPECT_NE(log.find("JIT COMPILED"), std::string::npos);

@@ -7,7 +7,7 @@ public final class SymbolTable {
     private final Deque<Map<String, Symbol>> scopes = new ArrayDeque<>();
 
     public SymbolTable() {
-        pushScope(); // глобальный
+        pushScope();
     }
 
     public void pushScope() {

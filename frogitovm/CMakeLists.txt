@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(JNI)
-
 add_executable(frogvm
     src/main.cpp
     src/bytecode/bytecode_loader.cpp
@@ -39,25 +37,22 @@ add_executable(frogvm_tests
     src/vm/vm.cpp
     src/runtime/heap.cpp
 )
+
 target_include_directories(frogvm_tests PRIVATE src)
 target_link_libraries(frogvm_tests PRIVATE GTest::gtest_main)
 add_test(NAME frogvm_gtests COMMAND frogvm_tests)
 
-if(JNI_FOUND)
-add_library(frogitovm_jni SHARED
-    src/jni/frogvm_jni.cpp
-    src/bytecode/bytecode_loader.cpp
-    src/vm/vm.cpp
-    src/runtime/heap.cpp
-)
+get_filename_component(REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
 
-target_include_directories(frogitovm_jni PRIVATE src ${JNI_INCLUDE_DIRS})
-target_link_libraries(frogitovm_jni PRIVATE ${JNI_LIBRARIES})
+set(FROGITO_LIB_DIR "${REPO_ROOT}/frogito/lib" CACHE PATH "Where to deploy frogvm binary")
 
-set_target_properties(frogitovm_jni PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    SOVERSION 1
+add_custom_target(deploy
+    DEPENDS frogvm
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${FROGITO_LIB_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:frogvm>"
+            "${FROGITO_LIB_DIR}/$<TARGET_FILE_NAME:frogvm>"
+    COMMAND ${CMAKE_COMMAND} -E echo
+            "Deployed: ${FROGITO_LIB_DIR}/$<TARGET_FILE_NAME:frogvm>"
+    VERBATIM
 )
-else()
-    message(STATUS "JNI not found, skipping JNI library build")
-endif()

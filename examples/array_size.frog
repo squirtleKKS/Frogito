@@ -1,0 +1,51 @@
+var array<int> a[5];
+
+print(a[0]);
+print(a[4]);
+
+a[2] = 42;
+print(a[2]);
+
+var array<bool> b[3];
+
+print(b[0]);
+print(b[2]);
+
+b[1] = true;
+print(b[1]);
+
+var int sum = 0;
+for (var int i = 0; i < len(a); i = i + 1) {
+    sum = sum + a[i];
+}
+print(sum);
+
+a[0] = 10;
+a[1] = 20;
+a[3] = 30;
+a[4] = 40;
+
+var int sum2 = 0;
+for (var int j = 0; j < len(a); j = j + 1) {
+    sum2 = sum2 + a[j];
+}
+print(sum2);
+
+var array<int> data[1000];
+var int m = 0;
+while (m < len(data)) {
+    data[m] = len(data) - m;
+    m = m + 1;
+}
+m = 0;
+while (m < len(data)) {
+    print(data[m]);
+    m = m + 1;
+}
+print(len(data));
+print(len(a));
+a = push_int(a, 10);
+print(len(a));
+print(a[len(a) - 1]);
+var array<int> n = {1, 2, 3};
+var array<bool> e = {true, true, false};

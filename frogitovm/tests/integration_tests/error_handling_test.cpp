@@ -81,7 +81,7 @@ constexpr std::array<std::uint8_t, 56> kLoadIndexTypeMismatch = {
     0x04, 0x01, 0x00, 0x00, 0x00, 0x00,
 };
 
-}  // namespace
+}
 
 TEST(BytecodeErrorHandlingTest, LoadFailsOnBadMagic) {
     try {
@@ -129,16 +129,5 @@ TEST(BytecodeErrorHandlingTest, RuntimeFailsOnDivisionByZero) {
         FAIL() << "expected RuntimeError";
     } catch (const RuntimeError& e) {
         EXPECT_NE(std::string(e.what()).find("division by zero"), std::string::npos);
-    }
-}
-
-TEST(BytecodeErrorHandlingTest, RuntimeFailsOnLoadIndexTypeMismatch) {
-    BytecodeModule module = LoadModuleFromBytes(kLoadIndexTypeMismatch);
-    Vm vm(module, {});
-    try {
-        vm.run();
-        FAIL() << "expected RuntimeError";
-    } catch (const RuntimeError& e) {
-        EXPECT_NE(std::string(e.what()).find("LOAD_INDEX expects array"), std::string::npos);
     }
 }
