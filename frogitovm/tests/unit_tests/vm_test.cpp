@@ -72,6 +72,14 @@ void ExpectRuntimeError(Vm& vm, const std::string& snippet) {
     }
 }
 
+std::int64_t AsInt64(const Value& v) {
+    std::int64_t out = 0;
+    if (!v.AsInt().TryToInt64(out)) {
+        throw std::runtime_error("int does not fit int64");
+    }
+    return out;
+}
+
 }  // namespace
 
 TEST(VmTest, StoresAndLoadsGlobal) {
@@ -94,7 +102,7 @@ TEST(VmTest, StoresAndLoadsGlobal) {
     ASSERT_EQ(globals.size(), 1u);
     auto it = globals.find("x");
     ASSERT_NE(it, globals.end());
-    EXPECT_EQ(it->second.AsInt(), 7);
+    EXPECT_EQ(AsInt64(it->second), 7);
     EXPECT_TRUE(vm.stack().empty());
 }
 
@@ -212,7 +220,7 @@ TEST(VmTest, CallsUserFunctionAndHandlesLocals) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 12);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 12);
 }
 
 TEST(VmTest, CallMissingOperandsThrows) {
@@ -264,7 +272,7 @@ TEST(VmTest, AddTwoInts) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 7);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 7);
 }
 
 TEST(VmTest, AddStringsConcatenates) {
@@ -467,7 +475,7 @@ TEST(VmTest, JumpSkipsInstructions) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 2);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 2);
 }
 
 TEST(VmTest, JumpFalseBranchesOnFalse) {
@@ -486,7 +494,7 @@ TEST(VmTest, JumpFalseBranchesOnFalse) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 42);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 42);
 }
 
 TEST(VmTest, JumpFalseDoesNotBranchOnTrue) {
@@ -504,7 +512,7 @@ TEST(VmTest, JumpFalseDoesNotBranchOnTrue) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 1);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 1);
 }
 
 TEST(VmTest, NewArrayLoadAndStoreIndexWorks) {
@@ -536,8 +544,8 @@ TEST(VmTest, NewArrayLoadAndStoreIndexWorks) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 2u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 20);
-    EXPECT_EQ(vm.stack()[1].AsInt(), 99);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 20);
+    EXPECT_EQ(AsInt64(vm.stack()[1]), 99);
 }
 
 TEST(VmTest, NewArrayMissingOperandThrows) {
@@ -606,7 +614,7 @@ TEST(VmTest, BuiltinLenOnArray) {
     Vm vm(module, {});
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 1u);
-    EXPECT_EQ(vm.stack()[0].AsInt(), 2);
+    EXPECT_EQ(AsInt64(vm.stack()[0]), 2);
 }
 
 TEST(VmTest, BuiltinLenRequiresArray) {
@@ -660,7 +668,7 @@ TEST(VmTest, BuiltinNewArrayBoolAndPushInt) {
     EXPECT_EQ(vm.run(), 0);
     ASSERT_EQ(vm.stack().size(), 2u);
     EXPECT_TRUE(vm.stack()[0].AsBool());
-    EXPECT_EQ(vm.stack()[1].AsInt(), 5);
+    EXPECT_EQ(AsInt64(vm.stack()[1]), 5);
 }
 
 TEST(VmTest, BuiltinNewArrayBoolNegativeSizeThrows) {

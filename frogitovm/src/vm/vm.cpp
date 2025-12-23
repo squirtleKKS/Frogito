@@ -358,30 +358,15 @@ Value Vm::sub_values(const Value& l, const Value& r) const {
 }
 
 Value Vm::mul_values(const Value& l, const Value& r) const {
-    if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) {
-        std::int64_t a = l.AsInt();
-        std::int64_t b = r.AsInt();
-        
-        if (a > 0 && b > 0 && a > INT64_MAX / b) {
-            throw RuntimeError("integer overflow");
-        }
-        if (a < 0 && b < 0 && a < INT64_MAX / b) {
-            throw RuntimeError("integer overflow");
-        }
-        if ((a > 0 && b < 0 || a < 0 && b > 0) && a != 0 && b < INT64_MIN / a) {
-            throw RuntimeError("integer overflow");
-        }
-        
-        return Value::FromInt(a * b);
-    }
+    if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) return Value::FromInt(l.AsInt() * r.AsInt());
     if (l.tag == ValueTag::kFloat && r.tag == ValueTag::kFloat) return Value::FromFloat(l.AsFloat() * r.AsFloat());
     throw RuntimeError("MUL type mismatch");
 }
 
 Value Vm::div_values(const Value& l, const Value& r) const {
     if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) {
-        std::int64_t d = r.AsInt();
-        if (d == 0) throw RuntimeError("division by zero");
+        const BigInt& d = r.AsInt();
+        if (d.is_zero()) throw RuntimeError("division by zero");
         return Value::FromInt(l.AsInt() / d);
     }
     if (l.tag == ValueTag::kFloat && r.tag == ValueTag::kFloat) {
@@ -394,8 +379,8 @@ Value Vm::div_values(const Value& l, const Value& r) const {
 
 Value Vm::mod_values(const Value& l, const Value& r) const {
     if (l.tag == ValueTag::kInt && r.tag == ValueTag::kInt) {
-        std::int64_t d = r.AsInt();
-        if (d == 0) throw RuntimeError("modulo by zero");
+        const BigInt& d = r.AsInt();
+        if (d.is_zero()) throw RuntimeError("modulo by zero");
         return Value::FromInt(l.AsInt() % d);
     }
     throw RuntimeError("MOD requires int");
@@ -487,7 +472,8 @@ Value Vm::call_builtin(std::string_view name, std::span<const Value> args, bool 
     if (name == "new_array_bool") {
         if (args.size() != 2) throw RuntimeError("new_array_bool expects 2 arguments");
         if (args[0].tag != ValueTag::kInt || args[1].tag != ValueTag::kBool) throw RuntimeError("new_array_bool type mismatch");
-        std::int64_t n = args[0].AsInt();
+        std::int64_t n = 0;
+        if (!args[0].AsInt().TryToInt64(n)) throw RuntimeError("new_array_bool size too large");
         if (n < 0) throw RuntimeError("new_array_bool negative size");
         bool fill = args[1].AsBool();
 
@@ -502,9 +488,10 @@ Value Vm::call_builtin(std::string_view name, std::span<const Value> args, bool 
         if (args.size() != 2) throw RuntimeError("new_array_int expects 2 arguments");
         if (args[0].tag != ValueTag::kInt || args[1].tag != ValueTag::kInt) throw RuntimeError("new_array_int type mismatch");
 
-        std::int64_t n = args[0].AsInt();
+        std::int64_t n = 0;
+        if (!args[0].AsInt().TryToInt64(n)) throw RuntimeError("new_array_int size too large");
         if (n < 0) throw RuntimeError("new_array_int negative size");
-        std::int64_t fill = args[1].AsInt();
+        const BigInt& fill = args[1].AsInt();
 
         ArrayObject* arr = heap_.AllocateArray(static_cast<std::size_t>(n), options_.gc_log, Roots());
         for (std::size_t i = 0; i < static_cast<std::size_t>(n); ++i) {
@@ -854,7 +841,8 @@ void Vm::H_LoadIndex(Vm& vm, const Instruction&) {
     Value arrv = vm.pop();
     if (idx.tag != ValueTag::kInt) throw RuntimeError("LOAD_INDEX expects int index");
     if (arrv.tag != ValueTag::kArray) throw RuntimeError("LOAD_INDEX expects array");
-    std::int64_t i = idx.AsInt();
+    std::int64_t i = 0;
+    if (!idx.AsInt().TryToInt64(i)) throw RuntimeError("array index out of bounds");
     ArrayObject* arr = arrv.AsArray();
     if (i < 0 || static_cast<std::size_t>(i) >= arr->elements.size()) throw RuntimeError("array index out of bounds");
     vm.push(arr->elements[static_cast<std::size_t>(i)]);
@@ -866,7 +854,8 @@ void Vm::H_StoreIndex(Vm& vm, const Instruction&) {
     Value arrv = vm.pop();
     if (idx.tag != ValueTag::kInt) throw RuntimeError("STORE_INDEX expects int index");
     if (arrv.tag != ValueTag::kArray) throw RuntimeError("STORE_INDEX expects array");
-    std::int64_t i = idx.AsInt();
+    std::int64_t i = 0;
+    if (!idx.AsInt().TryToInt64(i)) throw RuntimeError("array index out of bounds");
     ArrayObject* arr = arrv.AsArray();
     if (i < 0 || static_cast<std::size_t>(i) >= arr->elements.size()) throw RuntimeError("array index out of bounds");
     arr->elements[static_cast<std::size_t>(i)] = val;

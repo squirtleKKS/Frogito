@@ -43,7 +43,9 @@ void ExpectGlobalInt(const Vm& vm, const std::string& name, std::int64_t expecte
     auto globals = vm.globals();
     auto it = globals.find(name);
     ASSERT_NE(it, globals.end());
-    EXPECT_EQ(it->second.AsInt(), expected);
+    std::int64_t got = 0;
+    ASSERT_TRUE(it->second.AsInt().TryToInt64(got));
+    EXPECT_EQ(got, expected);
 }
 
 void ExpectGlobalBool(const Vm& vm, const std::string& name, bool expected) {
@@ -130,9 +132,15 @@ TEST(BytecodeVmTest, ArrayLiteralLikeSequence) {
     ASSERT_EQ(it->second.tag, ValueTag::kArray);
     ArrayObject* arr = it->second.AsArray();
     ASSERT_EQ(arr->elements.size(), 3u);
-    EXPECT_EQ(arr->elements[0].AsInt(), 3);
-    EXPECT_EQ(arr->elements[1].AsInt(), 3);
-    EXPECT_EQ(arr->elements[2].AsInt(), 4);
+    std::int64_t v0 = 0;
+    std::int64_t v1 = 0;
+    std::int64_t v2 = 0;
+    ASSERT_TRUE(arr->elements[0].AsInt().TryToInt64(v0));
+    ASSERT_TRUE(arr->elements[1].AsInt().TryToInt64(v1));
+    ASSERT_TRUE(arr->elements[2].AsInt().TryToInt64(v2));
+    EXPECT_EQ(v0, 3);
+    EXPECT_EQ(v1, 3);
+    EXPECT_EQ(v2, 4);
 }
 
 TEST(BytecodeVmTest, SimpleFunctionCall) {

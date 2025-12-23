@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <variant>
 
+#include "runtime/bigint.h"
+
 struct HeapObject;
 struct StringObject;
 struct ArrayObject;
@@ -18,7 +20,7 @@ enum class ValueTag : std::uint8_t {
 };
 
 using ValueStorage =
-    std::variant<std::monostate, std::int64_t, double, bool, HeapObject*>;
+    std::variant<std::monostate, BigInt, double, bool, HeapObject*>;
 
 struct Value {
     ValueTag tag = ValueTag::kNull;
@@ -29,6 +31,13 @@ struct Value {
     }
 
     static Value FromInt(std::int64_t v) {
+        Value out;
+        out.tag = ValueTag::kInt;
+        out.storage = BigInt(v);
+        return out;
+    }
+
+    static Value FromInt(const BigInt& v) {
         Value out;
         out.tag = ValueTag::kInt;
         out.storage = v;
@@ -56,9 +65,14 @@ struct Value {
         return out;
     }
 
-    std::int64_t AsInt() const {
+    const BigInt& AsInt() const {
         if (tag != ValueTag::kInt) throw std::runtime_error("expected int");
-        return std::get<std::int64_t>(storage);
+        return std::get<BigInt>(storage);
+    }
+
+    BigInt& AsInt() {
+        if (tag != ValueTag::kInt) throw std::runtime_error("expected int");
+        return std::get<BigInt>(storage);
     }
 
     double AsFloat() const {
