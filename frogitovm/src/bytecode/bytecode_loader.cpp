@@ -102,7 +102,7 @@ TypeTag TypeTagFromByte(std::uint8_t v) {
 }
 
 OpCode OpCodeFromByte(std::uint8_t v) {
-    if (v > static_cast<std::uint8_t>(OpCode::kPop)) {
+    if (v > static_cast<std::uint8_t>(OpCode::kKva)) {
         throw std::runtime_error("invalid opcode");
     }
     return static_cast<OpCode>(v);

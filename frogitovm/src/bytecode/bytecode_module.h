@@ -50,7 +50,8 @@ enum class OpCode : std::uint8_t {
     kNewArraySized,
     kLoadIndex,
     kStoreIndex,
-    kPop
+    kPop,
+    kKva
 };
 
 struct Constant {

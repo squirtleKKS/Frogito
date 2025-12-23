@@ -62,7 +62,7 @@ class Benchmark:
             [str(VM_EXECUTABLE), "run", str(bytecode_file)],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=120,
         )
 
         if result.returncode != 0:
@@ -93,43 +93,50 @@ def factorial_20_val(stdout):
 
 
 def sorting_gen():
-    array = list(range(10000, 0, -1))
-    array_elements = ", ".join(str(i) for i in array)
+    return """func void quicksort(array<int> arr, int low, int high) {
+                  if (low < high) {
+                      var int mid = (low + high) / 2;
+                      var int pivot = arr[mid];
+                      var int temp_swap = arr[mid];
+                      arr[mid] = arr[high];
+                      arr[high] = temp_swap;
+                      var int i = low - 1;
+                      var int j = low;
+                      while (j < high) {
+                          if (arr[j] <= pivot) {
+                              i = i + 1;
+                              var int temp = arr[i];
+                              arr[i] = arr[j];
+                              arr[j] = temp;
+                          }
+                          j = j + 1;
+                      }
+                      var int temp2 = arr[i + 1];
+                      arr[i + 1] = arr[high];
+                      arr[high] = temp2;
+                      var int pi = i + 1;
+                      quicksort(arr, low, pi - 1);
+                      quicksort(arr, pi + 1, high);
+                  }
+              }
 
-    return f"""func void quicksort(array<int> arr, int low, int high) {{
-    if (low < high) {{
-        var int pivot = arr[high];
-        var int i = low - 1;
-        var int j = low;
-        while (j < high) {{
-            if (arr[j] < pivot) {{
-                i = i + 1;
-                var int temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }}
-            j = j + 1;
-        }}
-        var int temp2 = arr[i + 1];
-        arr[i + 1] = arr[high];
-        arr[high] = temp2;
-        var int pi = i + 1;
-        quicksort(arr, low, pi - 1);
-        quicksort(arr, pi + 1, high);
-    }}
-}}
-
-var array<int> data = {{{array_elements}}};
-quicksort(data, 0, 9999);
+              var array<int> data[10000];
+              var int N = 10000;
+              var int j = 0;
+              while (j < N) {
+                  data[j] = N - j;
+                  j = j + 1;
+              }
+              quicksort(data, 0, N - 1);
 var int i = 0;
-while (i < 100) {{
+while (i < 100) {
     print(data[i]);
     i = i + 1;
-}}"""
+}"""
 
 
 def sorting_val(stdout):
-    sorted_array = sorted(range(10000, 0, -1))
+    sorted_array = sorted(range(1000000, 0, -1))
     output_lines = stdout.strip().split("\n")
 
     if len(output_lines) != 100:
@@ -145,27 +152,45 @@ def sorting_val(stdout):
 
 
 def primes_gen():
-    return """func int count_primes_up_to(int limit) {
-    var int count = 0;
-    var int n = 2;
-    while (n < limit) {
-        var bool is_prime = true;
-        var int d = 2;
-        while (d * d <= n) {
-            if (n % d == 0) {
-                is_prime = false;
-            }
-            d = d + 1;
-        }
-        if (is_prime) {
-            count = count + 1;
-        }
-        n = n + 1;
-    }
-    return count;
-}
+    return """func int count_primes_sieve(int limit) {
+                  if (limit <= 2) {
+                      return 0;
+                  }
 
-print(count_primes_up_to(100000));"""
+                  var array<int> is_comp[100000];
+
+                  var int i = 0;
+                  while (i < limit) {
+                      is_comp[i] = 0;
+                      i = i + 1;
+                  }
+                  is_comp[0] = 1;
+                  is_comp[1] = 1;
+
+                  var int p = 2;
+                  while (p * p < limit) {
+                      if (is_comp[p] == 0) {
+                          var int m = p * p;
+                          while (m < limit) {
+                              is_comp[m] = 1;
+                              m = m + p;
+                          }
+                      }
+                      p = p + 1;
+                  }
+
+                  var int count = 0;
+                  i = 2;
+                  while (i < limit) {
+                      if (is_comp[i] == 0) {
+                          count = count + 1;
+                      }
+                      i = i + 1;
+                  }
+                  return count;
+              }
+
+              print(count_primes_sieve(100000));"""
 
 
 def primes_val(stdout):

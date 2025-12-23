@@ -36,35 +36,9 @@ import lang.semantic.bytecode.ConstantPool;
 import lang.semantic.bytecode.FunctionInfo;
 import lang.semantic.bytecode.Instruction;
 import lang.semantic.bytecode.OpCode;
-import static lang.semantic.bytecode.OpCode.ADD;
-import static lang.semantic.bytecode.OpCode.AND;
-import static lang.semantic.bytecode.OpCode.CALL;
-import static lang.semantic.bytecode.OpCode.DIV;
-import static lang.semantic.bytecode.OpCode.EQ;
-import static lang.semantic.bytecode.OpCode.GE;
-import static lang.semantic.bytecode.OpCode.GT;
-import static lang.semantic.bytecode.OpCode.JUMP;
-import static lang.semantic.bytecode.OpCode.JUMP_FALSE;
-import static lang.semantic.bytecode.OpCode.LE;
-import static lang.semantic.bytecode.OpCode.LOAD_GLOBAL;
-import static lang.semantic.bytecode.OpCode.LOAD_INDEX;
-import static lang.semantic.bytecode.OpCode.LOAD_LOCAL;
-import static lang.semantic.bytecode.OpCode.LT;
-import static lang.semantic.bytecode.OpCode.MOD;
-import static lang.semantic.bytecode.OpCode.MUL;
-import static lang.semantic.bytecode.OpCode.NEG;
-import static lang.semantic.bytecode.OpCode.NEQ;
-import static lang.semantic.bytecode.OpCode.NEW_ARRAY;
-import static lang.semantic.bytecode.OpCode.NOT;
-import static lang.semantic.bytecode.OpCode.OR;
-import static lang.semantic.bytecode.OpCode.POP;
-import static lang.semantic.bytecode.OpCode.PUSH_CONST;
-import static lang.semantic.bytecode.OpCode.RET;
-import static lang.semantic.bytecode.OpCode.STORE_GLOBAL;
-import static lang.semantic.bytecode.OpCode.STORE_INDEX;
-import static lang.semantic.bytecode.OpCode.STORE_LOCAL;
-import static lang.semantic.bytecode.OpCode.SUB;
 import lang.semantic.symbols.FrogType;
+
+import static lang.semantic.bytecode.OpCode.*;
 
 public final class BytecodeGenerator {
 
@@ -157,6 +131,7 @@ public final class BytecodeGenerator {
             code.add(Instruction.of(RET));
             patchJump(jumpOverFuncs, programExitIp);
         }
+        code.add(Instruction.of(KVA));
 
         return new BytecodeModule(consts, functions, code);
     }

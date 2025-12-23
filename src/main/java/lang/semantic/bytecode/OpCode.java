@@ -34,5 +34,6 @@ public enum OpCode {
     STORE_INDEX,  // pop value, pop index, pop array (mutate)
 
     // misc
-    POP           // pop top (например, ExprStmt или void call)
+    POP,           // pop top (например, ExprStmt или void call)
+    KVA
 }

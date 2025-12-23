@@ -33,6 +33,11 @@ public final class Disassembler {
             Instruction ins = m.code.get(ip);
             System.out.printf("%04d  %s", ip, ins.op);
 
+            if (ins.op == OpCode.KVA) {
+                System.out.println();
+                continue;
+            }
+
             if (ins.hasA || ins.hasB) System.out.print(" ");
 
             if (ins.hasA) {

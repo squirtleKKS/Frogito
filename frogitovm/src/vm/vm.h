@@ -60,7 +60,7 @@ private:
     static constexpr std::uint32_t kBuiltinEntryIp = 0xFFFFFFFFu;
     static constexpr std::uint32_t kGlobalFuncIndex = 0xFFFFFFFFu;
     static constexpr std::uint32_t kHotFuncThreshold = 50;
-    static constexpr std::size_t kOpCount = static_cast<std::size_t>(OpCode::kPop) + 1;
+    static constexpr std::size_t kOpCount = static_cast<std::size_t>(OpCode::kKva) + 1;
 
     const BytecodeModule& module_;
     VmOptions options_;
@@ -166,4 +166,5 @@ private:
     static void H_NewArraySized(Vm& vm, const Instruction& ins);
     static void H_LoadIndex(Vm& vm, const Instruction& ins);
     static void H_StoreIndex(Vm& vm, const Instruction& ins);
+    static void H_Kva(Vm& vm, const Instruction& ins);
 };

@@ -66,6 +66,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST INT(70)
             0001  STORE_GLOBAL "x"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -77,6 +78,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST INT(14)
             0001  STORE_GLOBAL "y"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -88,6 +90,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST BOOL(true)
             0001  STORE_GLOBAL "b"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -105,6 +108,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST INT(1)
             0001  STORE_GLOBAL "a"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -121,6 +125,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST INT(0)
             0001  STORE_GLOBAL "x"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -137,6 +142,7 @@ public class BytecodeTest {
             0002  PUSH_CONST INT(4)
             0003  NEW_ARRAY 3
             0004  STORE_GLOBAL "nums"
+            0005  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -154,7 +160,8 @@ public class BytecodeTest {
                 "LOAD_LOCAL 0",
                 "PUSH_CONST INT(1)",
                 "ADD",
-                "RET"
+                "RET",
+                "KVA"
         );
     }
 
@@ -165,6 +172,7 @@ public class BytecodeTest {
             === CODE (disasm) ===
             0000  PUSH_CONST INT(17)
             0001  STORE_GLOBAL "x"
+            0002  KVA
             """;
         assertDisasmExact(src, expected);
     }
@@ -198,7 +206,8 @@ public class BytecodeTest {
                 "PUSH_CONST INT(50)",
                 "STORE_GLOBAL \"x\"",
                 "PUSH_CONST INT(0)",
-                "STORE_GLOBAL \"x\""
+                "STORE_GLOBAL \"x\"",
+                "KVA"
         );
     }
 
@@ -239,7 +248,8 @@ public class BytecodeTest {
                 "PUSH_CONST INT(1)",
                 "ADD",
                 "STORE_GLOBAL \"i\"",
-                "JUMP"
+                "JUMP",
+                "KVA"
         );
     }
 
@@ -264,7 +274,8 @@ public class BytecodeTest {
                 "LOAD_INDEX",
                 "PUSH_CONST INT(1)",
                 "LOAD_INDEX",
-                "STORE_GLOBAL \"a\""
+                "STORE_GLOBAL \"a\"",
+                "KVA"
         );
     }
 
@@ -294,7 +305,8 @@ public class BytecodeTest {
                 "PUSH_CONST INT(1)",
                 "ADD",
                 "STORE_GLOBAL \"i\"",
-                "JUMP"
+                "JUMP",
+                "KVA"
         );
     }
 
@@ -311,7 +323,8 @@ public class BytecodeTest {
                 "LOAD_GLOBAL \"a\"",
                 "PUSH_CONST INT(1)",
                 "PUSH_CONST INT(9)",
-                "STORE_INDEX"
+                "STORE_INDEX",
+                "KVA"
         );
     }
 
@@ -341,7 +354,8 @@ public class BytecodeTest {
                 "SUB",
                 "CALL fact@",
                 "MUL",
-                "RET"
+                "RET",
+                "KVA"
         );
     }
 
@@ -376,9 +390,11 @@ public class BytecodeTest {
                 "JUMP_FALSE",
                 "CALL sort@",
                 "NEW_ARRAY 3",
-                "STORE_GLOBAL \"nums\""
+                "STORE_GLOBAL \"nums\"",
+                "KVA"
         );
     }
+
     @Test
     void testAlgorithmSieve() {
         String src = """
@@ -415,7 +431,6 @@ public class BytecodeTest {
                 "PUSH_CONST INT(30)",
                 "CALL sieve@",
                 "STORE_GLOBAL \"primes\"",
-
                 "CALL new_array_bool@",
                 "STORE_LOCAL",
                 "PUSH_CONST INT(0)",
@@ -424,13 +439,11 @@ public class BytecodeTest {
                 "PUSH_CONST INT(1)",
                 "PUSH_CONST BOOL(false)",
                 "STORE_INDEX",
-
                 "NEW_ARRAY 0",
                 "STORE_LOCAL",
-
                 "CALL push_int@",
-                "RET"
+                "RET",
+                "KVA"
         );
     }
-
 }

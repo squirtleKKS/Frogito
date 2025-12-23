@@ -90,6 +90,7 @@ const std::array<Vm::Handler, Vm::kOpCount>& Vm::Dispatch() {
         t[static_cast<std::size_t>(OpCode::kStoreIndex)] = &Vm::H_StoreIndex;
 
         t[static_cast<std::size_t>(OpCode::kPop)] = &Vm::H_Pop;
+        t[static_cast<std::size_t>(OpCode::kKva)] = &Vm::H_Kva;
 
         return t;
     }();
@@ -276,6 +277,7 @@ std::string Vm::opcode_name(OpCode op) const {
         case OpCode::kLoadIndex: return "LOAD_INDEX";
         case OpCode::kStoreIndex: return "STORE_INDEX";
         case OpCode::kPop: return "POP";
+        case OpCode::kKva: return "KVA";
     }
     return "UNKNOWN";
 }
@@ -868,4 +870,7 @@ void Vm::H_StoreIndex(Vm& vm, const Instruction&) {
     ArrayObject* arr = arrv.AsArray();
     if (i < 0 || static_cast<std::size_t>(i) >= arr->elements.size()) throw RuntimeError("array index out of bounds");
     arr->elements[static_cast<std::size_t>(i)] = val;
+}
+void Vm::H_Kva(Vm& vm, const Instruction&) {
+    vm.frames_.clear();
 }
