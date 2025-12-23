@@ -280,7 +280,6 @@ public final class Parser {
 
         Statement init = null;
         if (match(SEMICOLON)) {
-            // нет инициализатора
         } else if (match(KW_VAR)) {
             init = parseVarDecl(previous());
         } else {

@@ -13,7 +13,7 @@ class BigInt final {
 public:
     static constexpr std::uint32_t kBase = 1'000'000'000u;
     static constexpr std::uint32_t kBaseDigits = 9;
-    static constexpr std::size_t kMaxDigits = 20;  // base-1e9 digits
+    static constexpr std::size_t kMaxDigits = 20;
 
     BigInt() = default;
 

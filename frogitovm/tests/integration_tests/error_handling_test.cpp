@@ -81,7 +81,7 @@ constexpr std::array<std::uint8_t, 56> kLoadIndexTypeMismatch = {
     0x04, 0x01, 0x00, 0x00, 0x00, 0x00,
 };
 
-}  // namespace
+}
 
 TEST(BytecodeErrorHandlingTest, LoadFailsOnBadMagic) {
     try {

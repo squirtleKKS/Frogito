@@ -99,7 +99,7 @@ constexpr std::array<std::uint8_t, 92> kSimpleFunctionCall = {
     0x00, 0x00, 0x00, 0x03, 0x05, 0x00, 0x17, 0x00,
 };
 
-}  // namespace
+}
 
 TEST(BytecodeVmTest, ConstantArithmeticChain) {
     BytecodeModule module = LoadModuleFromBytes(kConstantArithmeticChain);

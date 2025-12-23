@@ -281,7 +281,7 @@ private:
     std::streambuf* old_buf_;
 };
 
-}  // namespace
+}
 
 TEST(RealFileTest, MatchesHelloFrogcFromJavaFrontend) {
     std::filesystem::path file = WriteRawFile(kHelloModule);

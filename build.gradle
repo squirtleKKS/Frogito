@@ -34,3 +34,38 @@ tasks.javadoc {
     options.encoding = 'UTF-8'
     options.addBooleanOption('html5', true)
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'lang.app.Main'
+    }
+    archiveBaseName = 'frogito'
+}
+
+tasks.register('createNative', Exec) {
+    dependsOn jar
+
+    doFirst {
+        println "Building native executable..."
+    }
+
+    commandLine 'jpackage',
+            '--name', 'frogito',
+            '--input', 'build/libs',
+            '--main-jar', jar.archiveFileName.get(),
+            '--main-class', 'lang.app.Main',
+            '--type', 'app-image',
+            '--dest', 'build/native'
+}
+
+tasks.register('deployNative', Copy) {
+    dependsOn createNative
+
+    doFirst {
+        delete('./frogito')
+        mkdir('./frogito')
+    }
+
+    from 'build/native/frogito'
+    into './frogito'
+}

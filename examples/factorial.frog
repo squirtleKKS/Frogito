@@ -13,4 +13,3 @@ print("More factorials:");
 print(factorial(5));
 print(factorial(15));
 print(factorial(20));
-print(factorial(21));
