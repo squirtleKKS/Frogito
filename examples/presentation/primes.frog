@@ -1,0 +1,39 @@
+func int count_primes_sieve(int limit) {
+    if (limit <= 2) {
+        return 0;
+    }
+
+    var array<int> is_comp[100000];
+
+    var int i = 0;
+    while (i < limit) {
+        is_comp[i] = 0;
+        i = i + 1;
+    }
+    is_comp[0] = 1;
+    is_comp[1] = 1;
+
+    var int p = 2;
+    while (p * p < limit) {
+        if (is_comp[p] == 0) {
+            var int m = p * p;
+            while (m < limit) {
+                is_comp[m] = 1;
+                m = m + p;
+            }
+        }
+        p = p + 1;
+    }
+
+    var int count = 0;
+    i = 2;
+    while (i < limit) {
+        if (is_comp[i] == 0) {
+            count = count + 1;
+        }
+        i = i + 1;
+    }
+    return count;
+}
+
+print(count_primes_sieve(10));

@@ -1,0 +1,16 @@
+func int fibonacci(int n) {
+    if (n <= 1) {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+var int n = 10;
+print("fibonacci(n), n =");
+print(n);
+print(fibonacci(n));
+
+print("More fibonacci:");
+print(fibonacci(5));
+print(fibonacci(20));
+

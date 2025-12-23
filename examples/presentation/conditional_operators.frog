@@ -1,0 +1,27 @@
+func string sign(int x) {
+    if (x > 0) {
+        return "positive";
+    } else if (x == 0) {
+        return "zero";
+    } else {
+        return "negative";
+    }
+}
+
+var int x = -3;
+print("x =");
+print(x);
+print("sign(x) =");
+print(sign(x));
+
+var int y = 10;
+var bool in_range = (y >= 0) && (y <= 10);
+print("y = ");
+print(y);
+print(in_range);
+
+if (in_range) {
+    print("y is in range");
+} else {
+    print("y is out of range");
+}
