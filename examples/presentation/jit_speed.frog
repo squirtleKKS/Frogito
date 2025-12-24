@@ -1,0 +1,35 @@
+func int hot_loop(int iters) {
+    var int acc = 0;
+    var int i = 0;
+    while (i < iters) {
+        acc = acc + (i % 97);
+        acc = acc * 3 + 7;
+        acc = acc % 1000003;
+        i = i + 1;
+    }
+    return acc;
+}
+
+func int cold_once() {
+    return hot_loop(1000);
+}
+
+print("== JIT demo: warmup ==");
+var int k = 0;
+var int sum = 0;
+while (k < 60) {
+    sum = sum + hot_loop(20000);
+    k = k + 1;
+}
+
+print("== JIT demo: after warmup (should be JIT) ==");
+var int t = 0;
+while (t < 5) {
+    sum = sum + hot_loop(20000);
+    t = t + 1;
+}
+
+print("checksum:");
+print(sum);
+print("cold:");
+print(cold_once());

@@ -1,0 +1,32 @@
+print("== GC demo: big arrays ==");
+
+func array<int> make_big(int seed) {
+    var array<int> a[200000];
+    a[0] = seed;
+    return a;
+}
+
+var array<int> keep = make_big(0);
+var int i = 1;
+while (i < 40) {
+    keep = make_big(i);
+    i = i + 1;
+}
+
+print("keep[0]:");
+print(keep[0]);
+
+print("== GC demo: many small arrays (garbage churn) ==");
+
+var array<int> a = {};
+var int k = 0;
+while (k < 2000) {
+    a = push_int(a, k);
+    if (k % 100 == 0) {
+        keep = make_big(k);
+    }
+    k = k + 1;
+}
+
+print("len(a):");
+print(len(a));
