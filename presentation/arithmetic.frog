@@ -1,0 +1,27 @@
+// Basic arithmetic operations: +, -, *, /, %
+
+var int a = 17;
+var int b = 5;
+
+print("a =");
+print(a);
+print("b =");
+print(b);
+
+print("a + b =");
+print(a + b);
+print("a - b =");
+print(a - b);
+print("a * b =");
+print(a * b);
+print("a / b =");
+print(a / b);
+print("a % b =");
+print(a % b);
+
+var int expr = (a + 2) * (b - 1) / 3;
+print("expr = (a + 2) * (b - 1) / 3");
+print(expr);
+
+print("unary minus: -a");
+print(-a);

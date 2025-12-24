@@ -1,0 +1,17 @@
+var array<int> a[5];
+
+for (var int i = 0; i < len(a); i = i + 1) {
+    a[i] = (i + 1) * 10;
+}
+
+var int sum = 0;
+var int j = 0;
+while (j < len(a)) {
+    sum = sum + a[j];
+    j = j + 1;
+}
+
+print("len(a) =");
+print(len(a));
+print("sum(a) =");
+print(sum);
